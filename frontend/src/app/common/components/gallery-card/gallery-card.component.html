@@ -1,11 +1,12 @@
 <div
   class="card-root"
+  [class.selected]="isSelected"
+  [class.any-selected]="anyItemSelected"
   (mouseenter)="onMouseEnter()"
   (mouseleave)="onMouseLeave()"
 >
   <div
-    (dblclick)="onDblClick($event)"
-    (click)="selectMedia($event)"
+    (click)="onCardClick($event)"
     class="card-link"
     [class.selection-mode]="isSelectionMode"
   >
@@ -101,7 +102,7 @@
     <div
     class="selection-indicator"
     [class.selected]="isSelected"
-    (click)="onSelectionClick($event)"
+    (click)="toggleSelection($event)"
   >
     <mat-icon *ngIf="isSelected">check</mat-icon>
   </div>

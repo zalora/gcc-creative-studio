@@ -353,7 +353,8 @@ class GalleryService:
         and enriches it with presigned URLs.
         """
         # Run the synchronous database query in a separate thread
-        item = await self.media_repo.get_by_id(item_id)
+        is_admin = UserRoleEnum.ADMIN in current_user.roles
+        item = await self.media_repo.get_by_id(item_id, include_deleted=is_admin)
 
         if not item:
             return None
@@ -378,7 +379,7 @@ class GalleryService:
 
     async def bulk_delete(
         self, bulk_delete_dto: BulkDeleteDto, current_user: UserModel
-    ) -> dict:
+    ) -> dict[str, int]:
         """
         Deletes multiple gallery items after authorizing the workspace access.
         """
@@ -392,13 +393,13 @@ class GalleryService:
         for item in bulk_delete_dto.items:
             try:
                 if item.type == "media_item":
-                    # Check if user owns it or is admin
                     media_item = await self.media_repo.get_by_id(item.id)
                     if not media_item:
                         continue
                         
                     is_admin = UserRoleEnum.ADMIN in current_user.roles
-                    if media_item.user_id != current_user.id and not is_admin:
+                    is_owner = getattr(media_item, "user_id", None) == current_user.id
+                    if not is_admin and not is_owner:
                         logger.warning(f"User {current_user.id} unauthorized to delete media {item.id}")
                         continue
 
@@ -410,7 +411,8 @@ class GalleryService:
                         continue
                         
                     is_admin = UserRoleEnum.ADMIN in current_user.roles
-                    if asset.user_id != current_user.id and not is_admin:
+                    is_owner = getattr(asset, "user_id", None) == current_user.id
+                    if not is_admin and not is_owner:
                          logger.warning(f"User {current_user.id} unauthorized to delete asset {item.id}")
                          continue
 
@@ -420,6 +422,29 @@ class GalleryService:
                 logger.error(f"Error deleting {item.type} {item.id}: {e}")
 
         return {"deleted_count": deleted_count}
+ 
+    async def restore_item(self, item_id: int, item_type: str, current_user: UserModel) -> bool:
+        """
+        Restores a soft-deleted item (media_item or source_asset) after authorizing roles.
+        """
+        is_admin = UserRoleEnum.ADMIN in current_user.roles
+        if not is_admin:
+            raise HTTPException(
+                status_code=403,
+                detail="Only administrators can restore items."
+            )
+
+        if item_type == "media_item":
+            result = await self.media_repo.restore(item_id)
+        elif item_type == "source_asset":
+            result = await self.source_asset_repo.restore(item_id)
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid item_type: {item_type}")
+
+        if not result:
+            raise HTTPException(status_code=404, detail=f"{item_type} with ID {item_id} not found")
+
+        return True
 
     async def bulk_download(
         self, bulk_download_dto: BulkDownloadDto, current_user: UserModel

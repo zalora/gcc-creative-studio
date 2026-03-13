@@ -15,7 +15,8 @@
  */
 
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -56,6 +57,7 @@ import { WorkflowFormService } from './workflow-form.service';
   providers: [WorkflowFormService],
 })
 export class WorkflowEditorComponent implements OnInit, OnDestroy {
+  private platformId = inject(PLATFORM_ID);
   // --- Component Mode & State ---
   EditorMode = EditorMode;
   mode: EditorMode = EditorMode.Create;
@@ -154,20 +156,15 @@ export class WorkflowEditorComponent implements OnInit, OnDestroy {
         switchMap(params => {
           this.runId = params.get('runId');
           this.workflowId = params.get('workflowId');
-          console.log(`run id: ${this.runId}`)
-          console.log(`workflow id: ${this.workflowId}`)
           if (this.runId) {
-            console.log("This mode run")
             this.mode = EditorMode.Run;
             // TODO: Create and use a WorkflowRunService
             // return this.workflowRunService.getWorkflowRun(this.runId);
             return of(null); // Placeholder
           } else if (this.workflowId) {
-            console.log("This mode edit")
             this.mode = EditorMode.Edit;
             return this.workflowService.getWorkflowById(this.workflowId);
           } else {
-            console.log("This mode create")
             this.mode = EditorMode.Create;
             return of(null);
           }
@@ -204,19 +201,13 @@ export class WorkflowEditorComponent implements OnInit, OnDestroy {
     // Initialize and subscribe to user input changes
     // syncOutputs moved to service
     this.previousOutputDefinitions = this.outputDefinitionsArray.getRawValue();
-    this.outputDefinitionsArray.valueChanges.subscribe((currentValues) => {
-      this.handleOutputRenames(currentValues);
-      this.formService.syncOutputs(); // Trigger sync in service if needed, although service might handle specific adds/removes
-      // Actually outputDefinitionsArray.valueChanges might be too aggressive for full sync if service handles it.
-      // But service only handles explicit add/remove calls.
-      // If user types in name, we might need to sync?
-      // existing syncOutputs re-created controls.
-      // We might need to expose syncOutputs in service public API if we want to call it here.
-      // Or better, let service handle it internally.
-      // For now, let's assume service handles its own state for structure, and values just propagate.
-
-      this.previousOutputDefinitions = currentValues;
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      this.outputDefinitionsArray.valueChanges.subscribe((currentValues) => {
+        this.handleOutputRenames(currentValues);
+        this.formService.syncOutputs(); // Trigger sync in service if needed, although service might handle specific adds/removes
+        this.previousOutputDefinitions = currentValues;
+      });
+    }
   }
 
   resolveMediaUrls(details: any): void {

@@ -17,7 +17,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminAuthGuard } from './admin/admin-auth.guard';
-import { ArenaComponent } from './arena/arena.component';
 import { AudioComponent } from './audio/audio.component';
 import { AuthGuardService } from './common/services/auth.guard.service';
 import { FunTemplatesComponent } from './fun-templates/fun-templates.component';
@@ -42,7 +41,6 @@ const routes: Routes = [
     canActivate: [AuthGuardService],
   },
   {path: 'video', component: VideoComponent, canActivate: [AuthGuardService]},
-  {path: 'arena', component: ArenaComponent, canActivate: [AuthGuardService]},
   {path: 'vto', component: VtoComponent, canActivate: [AuthGuardService]},
   {path: 'audio', component: AudioComponent, canActivate: [AuthGuardService]},
   {path: 'workbench', component:WorkbenchComponent, canActivate: [AuthGuardService]},

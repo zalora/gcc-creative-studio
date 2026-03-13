@@ -18,6 +18,9 @@ from src.config.logger_config import setup_logging
 setup_logging()
 
 import logging
+
+logger = logging.getLogger(__name__)
+
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from os import getenv
@@ -52,9 +55,6 @@ from src.workflows_executor.workflows_executor_controller import (
 )
 from src.workspaces.workspace_controller import router as workspace_router
 from src.workbench.router import router as workbench_router
-
-# Get a logger instance for use in this file. It will inherit the root setup.
-logger = logging.getLogger(__name__)
 
 
 def configure_cors(app):

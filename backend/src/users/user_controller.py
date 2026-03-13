@@ -114,11 +114,37 @@ async def update_user_role(
     summary="Delete a User (Admin Only)",
     dependencies=[admin_only],
 )
-async def delete_user(user_id: int, user_service: UserService = Depends()):
+async def delete_user(
+    user_id: int,
+    current_user: UserModel = Depends(get_current_user),
+    user_service: UserService = Depends()
+):
     """
-    Permanently deletes a user from the database.
+    Soft deletes a user from the database.
     This functionality is restricted to administrators.
     """
-    if not await user_service.delete_user_by_id(user_id):
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot delete yourself."
+        )
+    success = await user_service.delete_user(user_id, deleted_by=current_user.id)
+    if not success:
         raise HTTPException(status_code=404, detail="User not found")
-    return
+
+
+@router.post(
+    "/{user_id}/restore",
+    status_code=status.HTTP_200_OK,
+    summary="Restore a User (Admin Only)",
+    dependencies=[admin_only],
+)
+async def restore_user(user_id: int, user_service: UserService = Depends()):
+    """
+    Restores a soft-deleted user.
+    This functionality is restricted to administrators.
+    """
+    success = await user_service.restore_user(user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User restored successfully"}

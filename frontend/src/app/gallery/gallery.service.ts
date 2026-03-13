@@ -63,7 +63,6 @@ export class GalleryService implements OnDestroy {
       this.filters$,
     ])
       .pipe(
-        // Use debounceTime to wait for filters to be set and prevent rapid reloads
         debounceTime(50),
         switchMap(([workspaceId, filters]) => {
           if (!filters) {
@@ -74,15 +73,15 @@ export class GalleryService implements OnDestroy {
 
           const body: GallerySearchDto = {
             ...filters,
-            workspaceId: workspaceId ?? undefined,
+            workspaceId: workspaceId || undefined,
           };
 
           return this.fetchImages(body).pipe(
             catchError(err => {
               console.error('Failed to fetch gallery images', err);
               this.isLoading$.next(false);
-              this.allImagesLoaded$.next(true); // prevent loading more
-              return of(null); // Return null or an empty response to prevent breaking the stream
+              this.allImagesLoaded$.next(true);
+              return of(null);
             }),
           );
         }),
@@ -108,7 +107,6 @@ export class GalleryService implements OnDestroy {
 
   setFilters(filters: GallerySearchDto) {
     this.filters$.next(filters);
-    // No need to call loadGallery here, the stream will automatically react.
   }
 
   loadGallery(reset = false): void {
@@ -127,7 +125,7 @@ export class GalleryService implements OnDestroy {
     const body: GallerySearchDto = {
       ...this.filters$.value,
       workspaceId:
-        this.workspaceStateService.getActiveWorkspaceId() ?? undefined,
+        this.workspaceStateService.getActiveWorkspaceId() || undefined,
       offset: this.currentPage * this.pageSize,
       limit: this.pageSize,
     };
@@ -137,18 +135,18 @@ export class GalleryService implements OnDestroy {
         catchError(err => {
           console.error('Failed to fetch gallery images', err);
           this.isLoading$.next(false);
-          this.allImagesLoaded$.next(true); // prevent loading more
+          this.allImagesLoaded$.next(true);
           return of(null);
         }),
       )
       .subscribe(response => {
         if (response) {
-          this.processFetchResponse(response, /* append= */ true);
+          this.processFetchResponse(response, true);
         }
       });
   }
 
-  private fetchImages(
+  public fetchImages(
     body: GallerySearchDto,
   ): Observable<PaginatedGalleryResponse> {
     this.isLoading$.next(true);
@@ -182,7 +180,6 @@ export class GalleryService implements OnDestroy {
   }
 
   getMedia(id: number): Observable<GalleryItem> {
-    // Always fetch details to ensure we have full MediaItem data
     const detailUrl = `${environment.backendURL}/gallery/item/${id}`;
     return this.http.get<any>(detailUrl).pipe(
       map(response => this.mapUnifiedItem({ ...response, itemType: 'media_item' }))
@@ -190,15 +187,12 @@ export class GalleryService implements OnDestroy {
   }
 
   getAsset(id: number): Observable<GalleryItem> {
-    // Always fetch for now to get full details and ensure type safety
     const assetUrl = `${environment.backendURL}/source_assets/${id}`;
     return this.http.get<any>(assetUrl).pipe(
       map(asset => {
-        // Normalize the raw asset response into a format mapUnifiedItem expects
         const item = {
           ...asset,
           itemType: 'source_asset',
-          // SourceAsset might have fields like gcsUri instead of gcsUris
           gcsUris: asset.gcsUris || (asset.gcsUri ? [asset.gcsUri] : (asset.gcs_uri ? [asset.gcs_uri] : [])),
           thumbnailUris: asset.thumbnailUris || (asset.thumbnailGcsUri ? [asset.thumbnailGcsUri] : (asset.thumbnail_gcs_uri ? [asset.thumbnail_gcs_uri] : [])),
           presignedUrls: asset.presignedUrls || (asset.presignedUrl ? [asset.presignedUrl] : (asset.presigned_url ? [asset.presigned_url] : [])),
@@ -232,27 +226,23 @@ export class GalleryService implements OnDestroy {
       presignedUrls: item.presignedUrls,
       presignedThumbnailUrls: item.presignedThumbnailUrls,
       metadata: metadata,
-
-      // Mapped display fields
-      mimeType: metadata.mime_type || item.mimeType,
-      aspectRatio: metadata.aspect_ratio || item.aspectRatio,
-      prompt: item.prompt || metadata.prompt || metadata.original_filename || 'Asset',
-      originalPrompt: item.originalPrompt || metadata.original_prompt || metadata.original_filename || 'Asset',
-
-      // Detailed fields - checking both top-level and metadata for robustness
+      mimeType: metadata.mimeType || metadata.mime_type || item.mimeType,
+      aspectRatio: metadata.aspectRatio || metadata.aspect_ratio || item.aspectRatio,
+      prompt: item.prompt || metadata.prompt || metadata.originalFilename || metadata.original_filename || 'Asset',
+      originalPrompt: item.originalPrompt || metadata.originalPrompt || metadata.original_prompt || metadata.originalFilename || metadata.original_filename || 'Asset',
       model: item.model || metadata.model,
-      userEmail: item.userEmail || item.user_email || metadata.user_email,
-      generationTime: item.generationTime || metadata.generation_time,
-      voiceName: item.voiceName || metadata.voice_name,
-      languageCode: item.languageCode || metadata.language_code,
+      userEmail: item.userEmail || item.user_email || metadata.userEmail || metadata.user_email,
+      generationTime: item.generationTime || metadata.generationTime || metadata.generation_time,
+      voiceName: item.voiceName || metadata.voiceName || metadata.voice_name,
+      languageCode: item.languageCode || metadata.languageCode || metadata.language_code,
       seed: item.seed || metadata.seed,
-      numMedia: item.numMedia || metadata.num_media,
+      numMedia: item.numMedia || metadata.numMedia || metadata.num_media,
       duration: item.duration || metadata.duration,
       resolution: item.resolution || metadata.resolution,
-      googleSearch: item.googleSearch ?? metadata.google_search,
-      groundingMetadata: item.groundingMetadata || metadata.grounding_metadata,
-      rewrittenPrompt: item.rewrittenPrompt || metadata.rewritten_prompt,
-      negativePrompt: item.negativePrompt || metadata.negative_prompt,
+      googleSearch: item.googleSearch ?? metadata.googleSearch ?? metadata.google_search,
+      groundingMetadata: item.groundingMetadata || metadata.groundingMetadata || metadata.grounding_metadata,
+      rewrittenPrompt: item.rewrittenPrompt || metadata.rewrittenPrompt || metadata.rewritten_prompt,
+      negativePrompt: item.negativePrompt || metadata.negativePrompt || metadata.negative_prompt,
       enrichedSourceAssets: item.enrichedSourceAssets || metadata.enriched_source_assets,
       enrichedSourceMediaItems: item.enrichedSourceMediaItems || metadata.enriched_source_media_items,
       style: item.style || metadata.style,
@@ -268,21 +258,11 @@ export class GalleryService implements OnDestroy {
       addWatermark: item.addWatermark ?? metadata.add_watermark,
       originalGcsUris: item.originalGcsUris || item.original_gcs_uris || [],
       originalPresignedUrls: item.originalPresignedUrls || item.original_presigned_urls || [],
+      deletedAt: item.deletedAt || item.deleted_at || metadata.deleted_at, // Added mapping for soft delete
     };
-
     return galleryItem;
   }
 
-  // legacy method for MediaItem details if needed, but getAsset/getMedia should ideally return specific types or a union
-  private mapSingleItem(item: any): MediaItem {
-    // ... existing logic for MediaItem details ...
-    return item as MediaItem; // simplified for now, assuming existing usage handles it
-  }
-
-  /**
-   * Creates a new template based on a media item.
-   * @param mediaItemId The ID of the media item to base the template on.
-   */
   createTemplateFromMediaItem(mediaItemId: number): Observable<{ id: string }> {
     return this.http.post<{ id: string }>(
       `${environment.backendURL}/media-templates/from-media-item/${mediaItemId}`,
@@ -290,33 +270,23 @@ export class GalleryService implements OnDestroy {
     );
   }
 
-  /**
-   * Bulk deletes media items and source assets.
-   * @param items The items to delete.
-   * @param workspaceId The current workspace ID.
-   */
   bulkDelete(items: { id: number, type: string }[], workspaceId: number): Observable<{ deleted_count: number }> {
     const url = `${environment.backendURL}/gallery/bulk-delete`;
     return this.http.post<{ deleted_count: number }>(url, { items, workspace_id: workspaceId });
   }
 
-  /**
-   * Downloads multiple media items and source assets as a ZIP file.
-   * @param items The items to download.
-   * @param workspaceId The current workspace ID.
-   */
   bulkDownload(items: { id: number, type: string }[], workspaceId: number): Observable<Blob> {
     const url = `${environment.backendURL}/gallery/bulk-download`;
     return this.http.post(url, { items, workspace_id: workspaceId }, { responseType: 'blob' });
   }
 
-  /**
-   * Bulk copies media items and source assets to another workspace.
-   * @param items The items to copy.
-   * @param targetWorkspaceId The target workspace ID.
-   */
   bulkCopy(items: { id: number, type: string }[], targetWorkspaceId: number): Observable<{ copied_count: number }> {
     const url = `${environment.backendURL}/gallery/bulk-copy`;
     return this.http.post<{ copied_count: number }>(url, { items, target_workspace_id: targetWorkspaceId });
+  }
+
+  restoreMediaItem(id: number, itemType: string): Observable<any> {
+    const url = `${environment.backendURL}/gallery/items/${id}/restore?item_type=${itemType}`;
+    return this.http.post(url, {});
   }
 }

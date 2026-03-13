@@ -16,15 +16,15 @@
 
 import { PaginatedResponse } from './paginated-response.model';
 
-export interface GalleryItem {
+export interface BaseGalleryItem {
   id: number;
   workspaceId: number;
   userId?: number;
   createdAt: string;
-  itemType: 'media_item' | 'source_asset';
   status?: string;
+  deletedAt?: string;
 
-  // Display fields (mapped from metadata)
+  // Display fields (optional fallbacks for backward compatibility)
   mimeType?: string;
   aspectRatio?: string;
   prompt?: string;
@@ -39,8 +39,12 @@ export interface GalleryItem {
   presignedUrls?: string[];
   originalPresignedUrls?: string[];
   presignedThumbnailUrls?: string[];
-
-  // Detailed fields (optional, populated when available)
+  
+  error_message?: string;
+  
+  // Flat fields for backwards compatibility with older components
+  enrichedSourceAssets?: any[];
+  enrichedSourceMediaItems?: any[];
   model?: string;
   userEmail?: string;
   generationTime?: number;
@@ -54,8 +58,6 @@ export interface GalleryItem {
   groundingMetadata?: any;
   rewrittenPrompt?: string;
   negativePrompt?: string;
-  enrichedSourceAssets?: any[];
-  enrichedSourceMediaItems?: any[];
   style?: string;
   lighting?: string;
   colorAndTone?: string;
@@ -65,11 +67,55 @@ export interface GalleryItem {
   critique?: string;
   rawData?: any;
   audioAnalysis?: any;
-  error_message?: string;
   addWatermark?: boolean;
-
-  // Metadata (loosely typed as it varies by itemType)
-  metadata: Record<string, any>;
 }
 
+export interface MediaItemMetadata {
+  model?: string;
+  style?: string;
+  prompt?: string;
+  isAudio?: boolean;
+  isVideo?: boolean;
+  lighting?: string;
+  mimeType?: string;
+  numMedia?: number;
+  userEmail?: string;
+  aspectRatio?: string;
+  generationTime?: number;
+  negativePrompt?: string;
+  originalPrompt?: string;
+  rewrittenPrompt?: string;
+  googleSearch?: boolean;
+  groundingMetadata?: any;
+  enrichedSourceAssets?: any[];
+  enrichedSourceMediaItems?: any[];
+  style_modifiers?: string[];
+  comment?: string;
+  critique?: string;
+  rawData?: any;
+  audioAnalysis?: any;
+  addWatermark?: boolean;
+}
+
+export interface SourceAssetMetadata {
+  isAudio?: boolean;
+  isVideo?: boolean;
+  mimeType?: string;
+  assetType?: string;
+  userEmail?: string;
+  aspectRatio?: string;
+  originalFilename?: string;
+}
+
+export interface MediaItemGallery extends BaseGalleryItem {
+  itemType: 'media_item';
+  metadata: MediaItemMetadata;
+}
+
+export interface SourceAssetGallery extends BaseGalleryItem {
+  itemType: 'source_asset';
+  metadata: SourceAssetMetadata;
+}
+
+export type GalleryItem = MediaItemGallery | SourceAssetGallery;
 export type PaginatedGalleryResponse = PaginatedResponse<GalleryItem>;

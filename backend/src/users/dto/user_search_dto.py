@@ -19,9 +19,8 @@ from src.common.dto.base_search_dto import BaseSearchDto
 
 class UserSearchDto(BaseSearchDto):
     """
-    Data Transfer Object for searching and filtering users.
-    Inherits pagination fields from BaseSearchDto.
+    DTO for searching users.
     """
-
-    email: Optional[str] = None
     role: Optional[UserRoleEnum] = None
+    email: Optional[str] = None
+    include_deleted: bool = False

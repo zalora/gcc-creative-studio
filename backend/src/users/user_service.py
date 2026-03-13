@@ -74,18 +74,39 @@ class UserService:
         """Retrieves a paginated list of all users."""
         return await self.user_repo.query(search_dto)
 
+    async def delete_user(self, user_id: int, deleted_by: Optional[int] = None) -> bool:
+        """Soft deletes a user."""
+        return await self.user_repo.soft_delete(user_id, deleted_by=deleted_by)
+
+    async def restore_user(self, user_id: int) -> bool:
+        """Restores a soft-deleted user."""
+        return await self.user_repo.restore(user_id)
+
     async def update_user_role(
         self, user_id: int, role_data: UserUpdateRoleDto
     ) -> Optional[UserModel]:
-        """Updates the role of a specific user."""
-            
-        # Convert the list of enums to a list of strings for DB
+        """Updates the role of a specific user with safeties."""
+        from sqlalchemy import select, func
+        from src.users.user_model import User
+        from fastapi import HTTPException
+
+        existing_user = await self.user_repo.get_by_id(user_id)
+        if not existing_user:
+            return None
+
+        was_admin = "admin" in existing_user.roles
+        will_be_admin = "admin" in [role.value for role in role_data.roles]
+
+        if was_admin and not will_be_admin:
+            admin_query = select(func.count()).select_from(User).where(User.roles.contains(["admin"]))
+            admin_count_result = await self.user_repo.db.execute(admin_query)
+            admin_count = admin_count_result.scalar() or 0
+            if admin_count <= 1:
+                raise HTTPException(
+                    status_code=400,
+                    detail="There must be at least 1 admin on the app."
+                )
+
         roles_as_strings = [role.value for role in role_data.roles]
-
-        # The update method in the repository would handle updating the 'role' field
         return await self.user_repo.update(user_id, {"roles": roles_as_strings})
-
-    async def delete_user_by_id(self, user_id: int) -> bool:
-        """Deletes a user from the system."""
-        return await self.user_repo.delete(user_id)
 

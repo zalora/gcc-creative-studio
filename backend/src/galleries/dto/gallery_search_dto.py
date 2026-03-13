@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from typing import Optional, Union
 
 from pydantic import Field
@@ -27,6 +28,10 @@ class GallerySearchDto(BaseSearchDto):
     mime_type: Optional[Union[MimeTypeEnum, WildcardMimeTypeEnum]] = None
     model: Optional[GenerationModelEnum] = None
     status: Optional[JobStatusEnum] = None
-    workspace_id: int = Field(
-        ge=1, description="The ID of the workspace to search within."
+    workspace_id: Optional[int] = Field(
+        None, ge=1, description="The ID of the workspace to search within."
     )
+    include_deleted: bool = False
+    start_date: Optional[datetime.datetime] = None
+    end_date: Optional[datetime.datetime] = None
+    item_type: Optional[str] = None # 'media_item' or 'source_asset'

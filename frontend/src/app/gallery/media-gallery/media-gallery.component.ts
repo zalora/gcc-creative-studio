@@ -236,6 +236,29 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  selectAll(): void {
+    this.images.forEach(item => {
+      const id = `${item.itemType}:${item.id}`;
+      this.selectedItems.add(id);
+    });
+  }
+
+  deselectAll(): void {
+    this.selectedItems.clear();
+  }
+
+  toggleSelectAll(): void {
+    if (this.isAllSelected) {
+      this.deselectAll();
+    } else {
+      this.selectAll();
+    }
+  }
+
+  get isAllSelected(): boolean {
+    return this.images.length > 0 && this.selectedItems.size === this.images.length;
+  }
+
   isItemSelected(item: GalleryItem): boolean {
     return this.selectedItems.has(`${item.itemType}:${item.id}`);
   }

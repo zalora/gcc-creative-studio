@@ -26,6 +26,8 @@ import { GalleryService } from '../gallery/gallery.service';
 import { AssetTypeEnum } from '../admin/source-assets-management/source-asset.model';
 import { MediaItem, JobStatus } from '../common/models/media-item.model';
 import { handleErrorSnackbar } from '../utils/handleMessageSnackbar';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface UploadedAsset { name: string; url: string; }
 interface AssetPair { original: UploadedAsset | null; upscaled: UploadedAsset | null; aspectRatio?: string; }
@@ -64,10 +66,23 @@ export class UpscaleComponent implements OnInit, OnDestroy {
     private sourceAssetService: SourceAssetService,
     private galleryService: GalleryService,
     private _snackBar: MatSnackBar,
-    private router: Router // Inject Router
+    private router: Router,
+    public matIconRegistry: MatIconRegistry,
+    private sanitizer: DomSanitizer,
   ) {
+    this.matIconRegistry.addSvgIcon(
+      'mobile-white-gemini-spark-icon',
+      this.setPath(`${this.path}/mobile-white-gemini-spark-icon.svg`),
+    );
+
     // Initialize the combined job stream
     this.activeUpscaleJob$ = this.sourceAssetService.activeUpscaleJob$;
+  }
+
+  private path = '../../assets/images';
+  
+  private setPath(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   ngOnInit(): void {

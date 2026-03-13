@@ -21,6 +21,7 @@ import {
   HostListener,
   Inject,
   OnInit,
+  PLATFORM_ID,
   signal
 } from '@angular/core';
 import { MatChipInputEvent } from '@angular/material/chips';
@@ -29,6 +30,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import { finalize, first, Observable } from 'rxjs';
 import { AssetTypeEnum } from '../admin/source-assets-management/source-asset.model';
 import { ImageCropperDialogComponent } from '../common/components/image-cropper-dialog/image-cropper-dialog.component';
@@ -69,6 +71,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
   // This observable will always reflect the current job's state
   activeVideoJob$: Observable<MediaItem | null>;
   public readonly JobStatus = JobStatus; // Expose enum to the template
+  isBrowser: boolean = false;
 
   @HostListener('window:keydown.control.enter', ['$event'])
   handleCtrlEnter(event: Event) {
@@ -201,7 +204,9 @@ export class VideoComponent implements OnInit, AfterViewInit {
     private videoStateService: VideoStateService,
     @Inject(GalleryService)
     private galleryService: GalleryService,
+    @Inject(PLATFORM_ID) private platformId: Object,
   ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     this.activeVideoJob$ = this.service.activeVideoJob$;
 
     this.matIconRegistry
@@ -225,7 +230,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
     const navigation = this.router.getCurrentNavigation();
     this.templateParams =
       navigation?.extras.state?.['templateParams'] ||
-      history.state?.templateParams;
+      (this.isBrowser ? history.state?.templateParams : undefined);
     this.applyTemplateParameters();
 
     const remixState = navigation?.extras.state?.['remixState'];
@@ -298,13 +303,15 @@ export class VideoComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const remixState = history.state?.remixState;
-    // Use a timeout to ensure the view is stable before opening a dialog.
-    setTimeout(() => {
-      if (remixState?.startConcatenation) {
-        this.openImageSelector(2); // Open selector for the second video
-      }
-    }, 1500);
+    if (this.isBrowser) {
+      const remixState = history.state?.remixState;
+      // Use a timeout to ensure the view is stable before opening a dialog.
+      setTimeout(() => {
+        if (remixState?.startConcatenation) {
+          this.openImageSelector(2); // Open selector for the second video
+        }
+      }, 1500);
+    }
   }
 
   private path = '../../assets/images';
@@ -501,7 +508,11 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
   searchTerm() {
     const activeWorkspaceId = this.workspaceStateService.getActiveWorkspaceId();
-    this.searchRequest.workspaceId = activeWorkspaceId ?? undefined;
+    if (!activeWorkspaceId) {
+      handleErrorSnackbar(this._snackBar, { message: 'Please select a workspace first.' }, 'Workspace');
+      return;
+    }
+    this.searchRequest.workspaceId = activeWorkspaceId;
 
     if (this.isConcatenateMode) {
       if (!activeWorkspaceId) {

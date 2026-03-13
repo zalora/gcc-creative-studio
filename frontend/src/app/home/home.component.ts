@@ -23,6 +23,7 @@ import {
   Inject,
   OnDestroy,
   OnInit,
+  PLATFORM_ID,
   ViewChild,
 } from '@angular/core';
 import { MatChipInputEvent } from '@angular/material/chips';
@@ -31,6 +32,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NavigationExtras, Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import { finalize, Observable } from 'rxjs';
 import { AssetTypeEnum } from '../admin/source-assets-management/source-asset.model';
 import { ImageCropperDialogComponent } from '../common/components/image-cropper-dialog/image-cropper-dialog.component';
@@ -283,6 +285,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     @Inject(GalleryService)
     private galleryService: GalleryService,
     private sourceAssetService: SourceAssetService,
+    @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     this.matIconRegistry
       .addSvgIcon(
@@ -350,21 +353,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // This hook is called after the component's view has been initialized.
-    // Now we can be sure that 'interBubble' is available.
-    if (this.interBubble && this.interBubble.nativeElement) {
-      this.move();
-    } else {
-      console.warn(
-        'Interactive bubble element not found. Animation may not start.',
-      );
+    if (isPlatformBrowser(this.platformId)) {
+      if (this.interBubble && this.interBubble.nativeElement) {
+        this.move();
+      } else {
+        console.warn(
+          'Interactive bubble element not found. Animation may not start.',
+        );
+      }
     }
   }
 
   ngOnDestroy(): void {
-    if (typeof window !== 'undefined')
+    if (isPlatformBrowser(this.platformId)) {
       window.removeEventListener('mousemove', this.onMouseMove);
-
+    }
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
@@ -735,6 +738,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     const activeWorkspaceId = this.workspaceStateService.getActiveWorkspaceId();
+    if (!activeWorkspaceId) {
+      handleErrorSnackbar(this._snackBar, { message: 'Please select a workspace first.' }, 'Workspace');
+      return;
+    }
+
     const payload: ImagenRequest = {
       ...this.searchRequest,
       negativePrompt: this.negativePhrases.join(', '),
@@ -761,6 +769,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           console.log('Image generation job started:', initialResponse);
         },
         error: error => {
+          this.isImageGenerating = false;
           handleErrorSnackbar(this._snackBar, error, 'Search');
         },
       });

@@ -51,17 +51,20 @@ class UserRepository(BaseRepository[User, UserModel]):
         """
         Performs a paginated query that includes the total document count.
         """
-        # 1. Build the base query
+        # 1. Start with select
         query = select(self.model)
-        
+
+        # 2. Apply filters
         if search_dto.email:
-            query = query.where(self.model.email == search_dto.email)
+            query = query.where(self.model.email.ilike(f"%{search_dto.email}%"))
         
         if search_dto.role:
-            # Postgres ARRAY contains check
             query = query.where(self.model.roles.contains([search_dto.role.value]))
 
-        # 2. Get total count
+        if not search_dto.include_deleted:
+            query = query.where(self.model.deleted_at.is_(None))
+
+        # Count total documents matching filters
         count_query = select(func.count()).select_from(query.subquery())
         count_result = await self.db.execute(count_query)
         total_count = count_result.scalar_one()

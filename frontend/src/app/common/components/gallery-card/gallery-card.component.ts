@@ -38,7 +38,8 @@ export class GalleryCardComponent implements OnDestroy {
   
   @Output() mediaItemSelected = new EventEmitter<MediaItemSelection>();
   @Output() mediaSelected = new EventEmitter<GalleryItem>();
-
+  @Output() selectionToggled = new EventEmitter<GalleryItem>();
+  
   currentImageIndex: number = 0;
   loadedMedia: Record<number, boolean> = {};
   hoveredVideoId: number | null = null;
@@ -124,6 +125,12 @@ export class GalleryCardComponent implements OnDestroy {
     return !!this.loadedMedia[index];
   }
 
+  toggleSelection(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.selectionToggled.emit(this.item);
+  }
+
   selectMedia(event: Event): void {
     if (this.isSelectionMode || this.anyItemSelected) {
       event.preventDefault();
@@ -141,7 +148,7 @@ export class GalleryCardComponent implements OnDestroy {
     event.preventDefault();
   }
 
-  onDblClick(event: MouseEvent): void {
+  onCardClick(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
     

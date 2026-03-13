@@ -30,8 +30,19 @@ class UnifiedGalleryItemResponse(BaseModel):
     status: Optional[str] = None
     gcs_uris: List[str] = []
     thumbnail_uris: List[str] = []
+    deleted_at: Optional[datetime] = None  # To support frontend filters
     # Map from 'metadata_' in SQLAlchemy model to 'metadata' in Pydantic
     metadata: Dict[str, Any] = Field(default_factory=dict, validation_alias="metadata_")
+
+    from pydantic import field_validator
+
+    @field_validator("metadata", mode="after")
+    @classmethod
+    def convert_metadata_keys(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        """Converts metadata keys to camelCase for frontend support."""
+        if isinstance(v, dict):
+            return {to_camel(k): val for k, val in v.items()}
+        return v
     
     # Presigned URLs will be injected by the service
     presigned_urls: List[str] = []

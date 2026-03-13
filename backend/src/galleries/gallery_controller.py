@@ -60,12 +60,25 @@ async def search_gallery_items(
     Provide filters in the request body to paginate through the gallery.
     to paginate through results.
     """
-    # This dependency call acts as a gatekeeper. If the user is not authorized
-    # for the workspace_id inside search_dto, it will raise an exception.
-    await workspace_auth.authorize(
-        workspace_id=search_dto.workspace_id,
-        user=current_user,
-    )
+    # Enforce workspace_id for non-admins
+    is_admin = current_user.roles and UserRoleEnum.ADMIN in current_user.roles
+    if not is_admin:
+        if not search_dto.workspace_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="workspace_id is required for non-admin users.",
+            )
+        await workspace_auth.authorize(
+            workspace_id=search_dto.workspace_id,
+            user=current_user,
+        )
+    else:
+        # For admins, only authorize if workspace_id is provided
+        if search_dto.workspace_id is not None:
+            await workspace_auth.authorize(
+                workspace_id=search_dto.workspace_id,
+                user=current_user,
+            )
 
     return await service.get_paginated_gallery(
         search_dto=search_dto, current_user=current_user
@@ -104,8 +117,21 @@ async def bulk_delete_items(
     return await service.bulk_delete(
         bulk_delete_dto=bulk_delete_dto, current_user=current_user
     )
-
-
+ 
+@router.post("/items/{item_id}/restore")
+async def restore_gallery_item(
+    item_id: int,
+    item_type: str,
+    current_user: UserModel = Depends(get_current_user),
+    service: GalleryService = Depends(),
+):
+    """
+    Restore a soft-deleted item by its ID and item_type.
+    """
+    return await service.restore_item(
+        item_id=item_id, item_type=item_type, current_user=current_user
+    )
+ 
 @router.post("/bulk-download")
 async def bulk_download_items(
     bulk_download_dto: BulkDownloadDto,
@@ -129,6 +155,3 @@ async def bulk_copy_items(
     """
     Bulk copy media items and source assets to another workspace.
     """
-    return await service.bulk_copy(
-        bulk_copy_dto=bulk_copy_dto, current_user=current_user
-    )

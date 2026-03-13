@@ -287,7 +287,22 @@ GENMEDIA_BUCKET="creative-studio-deploy-cs-development-bucket"
 SIGNING_SA_EMAIL="cs-development-read@creative-studio-deploy.iam.gserviceaccount.com"
 GOOGLE_TOKEN_AUDIENCE="XXXX-XXXXXXXXXXX.apps.googleusercontent.com"
 IDENTITY_PLATFORM_ALLOWED_ORGS=""
+
+# --- Database Configuration (Local Docker Postgres) ---
+DB_USER="studio_user"
+DB_PASS="studio_pass"
+DB_NAME="creative_studio"
+DB_HOST="postgres"
+DB_PORT="5432"
+USE_CLOUD_SQL_AUTH_PROXY=false
+ADMIN_USER_EMAIL="your-user-email"
 ```
+
+> 💡 **Best Practice Tip: Local PostgreSQL Container**
+> For local development and testing, we include a lightweight PostgreSQL Docker container to bypass the need for an actual Cloud SQL instance. This delivers key advantages:
+> - **Zero Costs**: Avoids billing accrual on cloud data lookups during validation work cycles.
+> - **Safe Experimentation**: Clear volume bindings locally without risking production states or accidental cloud data drops.
+> - **Instant Migrations Validation**: Speed runs Alembic updates completely isolated and offline.
 
 ### `frontend/src/environments/development.environment.ts` file
 
@@ -341,6 +356,13 @@ You are all set, from the root of the project, run the following command:
 
 ```bash
 docker compose up
+```
+
+### 💡 Seeding Initial Workspaces (Local Development/Testing)
+If you are running this locally for the first time or your database is fresh, you might find that the Workspaces list is empty. You should run the bootstrap script once to seed default templates and verify access:
+
+```bash
+docker exec -t creative-studio-backend sh -c "PYTHONPATH=/app uv run python -m bootstrap.bootstrap"
 ```
 
 As this uses volumes, and we use hot reload to start the services, every time you change something on the files the container will be refreshed with the changes.

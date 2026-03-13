@@ -27,6 +27,7 @@ import {SourceAssetFormComponent} from './source-asset-form/source-asset-form.co
 import { handleErrorSnackbar, handleSuccessSnackbar } from '../../utils/handleMessageSnackbar';
 import {SourceAssetResponseDto} from '../../common/services/source-asset.service';
 import {SourceAssetUploadFormComponent} from './source-asset-upload-form/source-asset-upload-form.component';
+import {ConfirmationDialogComponent} from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-source-assets-management',
@@ -89,6 +90,7 @@ export class SourceAssetsManagementComponent implements OnInit {
           this.limit,
           offset,
         ),
+        { defaultValue: { data: [], count: 0 } as any }
       );
 
       this.dataSource.data = finalResponse.data;
@@ -153,22 +155,29 @@ export class SourceAssetsManagementComponent implements OnInit {
   }
 
   deleteAsset(asset: SourceAssetResponseDto): void {
-    if (
-      asset.id &&
-      confirm(
-        `Are you sure you want to delete asset "${asset.originalFilename}"?`,
-      )
-    ) {
-      this.sourceAssetService.deleteSourceAsset(asset.id).subscribe({
-        next: () => {
-          this.fetchAssets();
-          handleSuccessSnackbar(this.snackBar, 'Asset deleted successfully');
-        },
-        error: (err: Error) => {
-          handleErrorSnackbar(this.snackBar, err, 'Delete asset');
-        },
-      });
-    }
+    if (!asset.id) return;
+
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Confirm Deletion',
+        message: `Are you sure you want to delete asset "${asset.originalFilename}"?`,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result && asset.id) {
+        this.sourceAssetService.deleteSourceAsset(asset.id).subscribe({
+          next: () => {
+            this.fetchAssets();
+            handleSuccessSnackbar(this.snackBar, 'Asset deleted successfully');
+          },
+          error: (err: Error) => {
+            handleErrorSnackbar(this.snackBar, err, 'Delete asset');
+          },
+        });
+      }
+    });
   }
 
   handlePageEvent(event: PageEvent) {

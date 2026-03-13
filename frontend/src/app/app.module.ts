@@ -71,7 +71,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ImageCropperComponent } from 'ngx-image-cropper';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ArenaComponent } from './arena/arena.component';
 import { AudioComponent } from './audio/audio.component';
 import { AuthInterceptor } from './auth.interceptor';
 
@@ -113,10 +112,8 @@ import { UpscaleComponent } from './upscale/upscale.component';
     FooterComponent,
     HomeComponent,
     LoginComponent,
-
     FunTemplatesComponent,
     VideoComponent,
-    ArenaComponent,
     MediaGalleryComponent,
     MediaDetailComponent,
     MediaLightboxComponent,

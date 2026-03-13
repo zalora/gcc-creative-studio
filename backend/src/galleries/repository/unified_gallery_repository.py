@@ -45,11 +45,14 @@ class UnifiedGalleryRepository(BaseRepository[UnifiedGalleryView, UnifiedGallery
         # 1. Build the base query
         query = select(self.model)
         
-        # Filter by workspace (mandatory)
-        query = query.where(self.model.workspace_id == search_dto.workspace_id)
+        # Soft Delete Filter
+        if not search_dto.include_deleted:
+            query = query.where(self.model.deleted_at.is_(None))
+            
+        # Filter by workspace (conditional for admins)
+        if search_dto.workspace_id is not None:
+            query = query.where(self.model.workspace_id == search_dto.workspace_id)
 
-        # Filter out soft-deleted items
-        query = query.where(self.model.deleted_at == None)
         
         # Filter by status
         if search_dto.status:
@@ -82,6 +85,17 @@ class UnifiedGalleryRepository(BaseRepository[UnifiedGalleryView, UnifiedGallery
                  self.model.metadata_['model'].astext == search_dto.model.value
              )
 
+
+        # 3. Item Type
+        if hasattr(search_dto, 'item_type') and search_dto.item_type:
+             query = query.where(self.model.item_type == search_dto.item_type)
+
+        # 4. Date Range
+        if hasattr(search_dto, 'start_date') and search_dto.start_date:
+             query = query.where(self.model.created_at >= search_dto.start_date)
+             
+        if hasattr(search_dto, 'end_date') and search_dto.end_date:
+             query = query.where(self.model.created_at <= search_dto.end_date)
 
         # 2. Get total count
         count_query = select(func.count()).select_from(query.subquery())

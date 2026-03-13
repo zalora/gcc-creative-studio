@@ -15,7 +15,8 @@
  */
 
 
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { pairwise, startWith } from 'rxjs/operators';
@@ -24,6 +25,7 @@ import { NodeTypes, StepStatusEnum, WorkflowBase, WorkflowModel } from '../workf
 
 @Injectable()
 export class WorkflowFormService {
+  private platformId = inject(PLATFORM_ID);
   public workflowForm!: FormGroup;
 
   private _availableOutputsPerStep = new BehaviorSubject<any[][]>([]);
@@ -63,15 +65,17 @@ export class WorkflowFormService {
     }
 
     // Subscribe to output definition changes for renaming
-    this.outputDefinitionsArray.valueChanges
-      .pipe(
-        startWith(this.outputDefinitionsArray.getRawValue()),
-        pairwise()
-      )
-      .subscribe(([prev, curr]) => {
-        this.handleOutputRenames(prev, curr);
-        this.syncOutputs(); // Also ensure outputs group is synced
-      });
+    if (isPlatformBrowser(this.platformId)) {
+      this.outputDefinitionsArray.valueChanges
+        .pipe(
+          startWith(this.outputDefinitionsArray.getRawValue()),
+          pairwise()
+        )
+        .subscribe(([prev, curr]) => {
+          this.handleOutputRenames(prev, curr);
+          this.syncOutputs(); // Also ensure outputs group is synced
+        });
+    }
 
     // Initial sync of outputs and available outputs after form is built
     this.syncOutputs();

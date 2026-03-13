@@ -15,7 +15,8 @@
  */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable, Subscription, throwError, timer } from 'rxjs';
 import {
   shareReplay,
@@ -41,6 +42,7 @@ import {
   providedIn: 'root',
 })
 export class WorkflowService implements OnDestroy {
+  private platformId = inject(PLATFORM_ID);
   private currentWorkflowIdSubject = new BehaviorSubject<string | null>(null);
   currentWorkflowId$: Observable<string | null> =
     this.currentWorkflowIdSubject.asObservable();
@@ -76,12 +78,14 @@ export class WorkflowService implements OnDestroy {
     );
 
     // Subscribe to the GLOBAL workspace state
-    this.dataLoadingSubscription =
-      this.workspaceStateService.activeWorkspaceId$.subscribe(workspaceId => {
-        if (workspaceId) {
-          this.loadWorkflows(true); // Reset and load on workspace change
-        }
-      });
+    if (isPlatformBrowser(this.platformId)) {
+      this.dataLoadingSubscription =
+        this.workspaceStateService.activeWorkspaceId$.subscribe(workspaceId => {
+          if (workspaceId) {
+            this.loadWorkflows(true); // Reset and load on workspace change
+          }
+        });
+    }
   }
 
   ngOnDestroy(): void {
