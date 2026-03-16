@@ -22,7 +22,9 @@ from src.common.dto.pagination_response_dto import PaginationResponseDto
 from src.common.schema.unified_gallery_view import UnifiedGalleryView
 from src.database import get_db
 from src.galleries.dto.gallery_search_dto import GallerySearchDto
-from src.galleries.dto.unified_gallery_response import UnifiedGalleryItemResponse
+from src.galleries.dto.unified_gallery_response import (
+    UnifiedGalleryItemResponse,
+)
 
 
 class UnifiedGalleryRepository(
@@ -54,7 +56,9 @@ class UnifiedGalleryRepository(
 
         # Filter by workspace (conditional for admins)
         if search_dto.workspace_id is not None:
-            query = query.where(self.model.workspace_id == search_dto.workspace_id)
+            query = query.where(
+                self.model.workspace_id == search_dto.workspace_id
+            )
 
         # Filter by status
         if search_dto.status:
@@ -109,7 +113,9 @@ class UnifiedGalleryRepository(
 
         # 3. Add ordering and pagination
         # Default ordering by created_at DESC
-        query = query.order_by(self.model.created_at.desc(), self.model.id.desc())
+        query = query.order_by(
+            self.model.created_at.desc(), self.model.id.desc()
+        )
 
         # Offset-based pagination
         query = query.offset(search_dto.offset).limit(search_dto.limit)

@@ -20,8 +20,13 @@ from fastapi.testclient import TestClient
 
 from src.auth.auth_guard import get_current_user
 from src.common.base_dto import MimeTypeEnum
-from src.source_assets.dto.source_asset_response_dto import SourceAssetResponseDto
-from src.source_assets.schema.source_asset_model import AssetScopeEnum, AssetTypeEnum
+from src.source_assets.dto.source_asset_response_dto import (
+    SourceAssetResponseDto,
+)
+from src.source_assets.schema.source_asset_model import (
+    AssetScopeEnum,
+    AssetTypeEnum,
+)
 from src.source_assets.source_asset_controller import router
 from src.source_assets.source_asset_service import SourceAssetService
 from src.users.user_model import UserModel
@@ -30,7 +35,9 @@ from src.workspaces.workspace_auth_guard import WorkspaceAuth
 
 @pytest.fixture
 def mock_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.fixture
@@ -171,7 +178,9 @@ def test_delete_source_asset_not_found(client, mock_service, mock_user):
 
 
 @pytest.mark.anyio
-async def test_list_source_assets_admin_search_self(client, mock_service, mock_user):
+async def test_list_source_assets_admin_search_self(
+    client, mock_service, mock_user
+):
     from src.common.dto.pagination_response_dto import PaginationResponseDto
 
     mock_user.roles = ["admin"]
@@ -192,7 +201,9 @@ async def test_list_source_assets_admin_search_self(client, mock_service, mock_u
 
 
 @pytest.mark.anyio
-async def test_list_source_assets_admin_search_other(client, mock_service, mock_user):
+async def test_list_source_assets_admin_search_other(
+    client, mock_service, mock_user
+):
     from src.common.dto.pagination_response_dto import PaginationResponseDto
 
     mock_user.roles = ["admin"]

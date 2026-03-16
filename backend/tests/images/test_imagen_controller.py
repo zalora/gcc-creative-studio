@@ -34,7 +34,9 @@ from src.workspaces.workspace_auth_guard import WorkspaceAuth
 
 @pytest.fixture
 def mock_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.fixture
@@ -190,7 +192,9 @@ def test_generate_images_http_exception(client, mock_service):
 
 
 def test_generate_images_value_error(client, mock_service):
-    mock_service.start_image_generation_job.side_effect = ValueError("Invalid Prompt")
+    mock_service.start_image_generation_job.side_effect = ValueError(
+        "Invalid Prompt"
+    )
 
     payload = {
         "prompt": "A sunset",
@@ -205,7 +209,9 @@ def test_generate_images_value_error(client, mock_service):
 
 
 def test_generate_images_general_exception(client, mock_service):
-    mock_service.start_image_generation_job.side_effect = Exception("System Crash")
+    mock_service.start_image_generation_job.side_effect = Exception(
+        "System Crash"
+    )
 
     payload = {
         "prompt": "A sunset",
@@ -256,7 +262,9 @@ def test_upscale_image_api_http_exception(client, mock_service):
 
 
 def test_generate_images_vto_value_error(client, mock_service):
-    mock_service.start_vto_generation_job.side_effect = ValueError("Invalid VTO")
+    mock_service.start_vto_generation_job.side_effect = ValueError(
+        "Invalid VTO"
+    )
     payload = {
         "workspace_id": 1,
         "person_image": {"source_asset_id": 101},

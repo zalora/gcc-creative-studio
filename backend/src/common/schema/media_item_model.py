@@ -18,7 +18,15 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    func,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -66,8 +74,12 @@ class AssetRoleEnum(str, Enum):
     CONCATENATION_SOURCE = (
         "concatenation_source"  # An input video in a concatenation job
     )
-    IMAGE_REFERENCE_STYLE = "image_reference_style"  # An input for R2V with style type
-    IMAGE_REFERENCE_ASSET = "image_reference_asset"  # An input for R2V with asset type
+    IMAGE_REFERENCE_STYLE = (
+        "image_reference_style"  # An input for R2V with style type
+    )
+    IMAGE_REFERENCE_ASSET = (
+        "image_reference_asset"  # An input for R2V with asset type
+    )
 
 
 class SourceAssetLink(BaseModel):
@@ -146,7 +158,9 @@ class MediaItem(Base):
     thumbnail_uris: Mapped[list[str]] = mapped_column(ARRAY(String), default=[])
 
     # Enums
-    aspect_ratio: Mapped[AspectRatioEnum] = mapped_column(String, nullable=False)
+    aspect_ratio: Mapped[AspectRatioEnum] = mapped_column(
+        String, nullable=False
+    )
     style: Mapped[str | None] = mapped_column(String, nullable=True)
     lighting: Mapped[str | None] = mapped_column(String, nullable=True)
     color_and_tone: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -159,7 +173,9 @@ class MediaItem(Base):
     )
 
     # JSONB fields for lists of objects
-    source_assets: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True)
+    source_assets: Mapped[list[dict] | None] = mapped_column(
+        JSONB, nullable=True
+    )
     source_media_items: Mapped[list[dict] | None] = mapped_column(
         JSONB,
         nullable=True,
@@ -181,7 +197,9 @@ class MediaItem(Base):
     critique: Mapped[str | None] = mapped_column(String, nullable=True)
     google_search: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     resolution: Mapped[str | None] = mapped_column(String, nullable=True)
-    grounding_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    grounding_metadata: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True
+    )
 
     # Music specific
     audio_analysis: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

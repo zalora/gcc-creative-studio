@@ -18,7 +18,11 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from src.common.base_dto import AspectRatioEnum, GenerationModelEnum, MimeTypeEnum
+from src.common.base_dto import (
+    AspectRatioEnum,
+    GenerationModelEnum,
+    MimeTypeEnum,
+)
 from src.common.schema.media_item_model import (
     AssetRoleEnum,
     JobStatusEnum,
@@ -26,7 +30,9 @@ from src.common.schema.media_item_model import (
     SourceAssetLink,
 )
 from src.galleries.dto.gallery_search_dto import GallerySearchDto
-from src.galleries.dto.unified_gallery_response import UnifiedGalleryItemResponse
+from src.galleries.dto.unified_gallery_response import (
+    UnifiedGalleryItemResponse,
+)
 from src.galleries.gallery_service import GalleryService
 from src.users.user_model import UserModel, UserRoleEnum
 
@@ -51,7 +57,9 @@ def service():
         workspace_repo=mock_workspace_repo,
         iam_signer_credentials=mock_iam_signer,
         workspace_auth=(
-            workspace_auth if "workspace_auth" in locals() else mock_workspace_auth
+            workspace_auth
+            if "workspace_auth" in locals()
+            else mock_workspace_auth
         ),
         imagen_service=mock_imagen_service,
         gcs_service=mock_gcs_service,
@@ -146,7 +154,9 @@ async def test_get_paginated_gallery_regular_user(service):
         roles=[UserRoleEnum.USER],
     )
 
-    search_dto = GallerySearchDto(limit=10, offset=0, status=JobStatusEnum.FAILED)
+    search_dto = GallerySearchDto(
+        limit=10, offset=0, status=JobStatusEnum.FAILED
+    )
 
     mock_query_result = MagicMock()
     mock_query_result.data = []
@@ -198,7 +208,10 @@ async def test_get_media_by_id_success(service):
 
 @pytest.mark.anyio
 async def test_bulk_delete_success(service):
-    from src.galleries.dto.bulk_delete_dto import BulkDeleteDto, BulkDeleteItemDto
+    from src.galleries.dto.bulk_delete_dto import (
+        BulkDeleteDto,
+        BulkDeleteItemDto,
+    )
 
     bulk_dto = BulkDeleteDto(
         workspace_id=99,
@@ -224,7 +237,9 @@ async def test_bulk_delete_success(service):
 
     assert result["deleted_count"] == 2
     service.mock_media_repo.soft_delete.assert_called_once_with(1, deleted_by=1)
-    service.mock_source_asset_repo.soft_delete.assert_called_once_with(2, deleted_by=1)
+    service.mock_source_asset_repo.soft_delete.assert_called_once_with(
+        2, deleted_by=1
+    )
 
 
 @pytest.mark.anyio
@@ -272,7 +287,10 @@ async def test_bulk_copy_success(service):
 
 @pytest.mark.anyio
 async def test_bulk_download_success(service):
-    from src.galleries.dto.bulk_download_dto import BulkDownloadDto, BulkDownloadItemDto
+    from src.galleries.dto.bulk_download_dto import (
+        BulkDownloadDto,
+        BulkDownloadItemDto,
+    )
 
     bulk_dto = BulkDownloadDto(
         workspace_id=99,
@@ -290,7 +308,9 @@ async def test_bulk_download_success(service):
     mock_media.mime_type = "image/png"
     service.mock_media_repo.get_by_id.return_value = mock_media
 
-    service.mock_gcs_service.download_bytes_from_gcs.return_value = b"fake-content"
+    service.mock_gcs_service.download_bytes_from_gcs.return_value = (
+        b"fake-content"
+    )
     service.mock_workspace_auth.authorize.return_value = None
 
     response = await service.bulk_download(bulk_dto, current_user)
@@ -346,13 +366,18 @@ async def test_get_media_by_id_with_source_media_items(service):
     service.mock_media_repo.get_by_id.side_effect = get_by_id_side_effect
 
     service.mock_workspace_repo.get_by_id.return_value = MagicMock()
-    service.mock_iam_signer.generate_presigned_url.return_value = "https://signed.url"
+    service.mock_iam_signer.generate_presigned_url.return_value = (
+        "https://signed.url"
+    )
 
     result = await service.get_media_by_id(123, current_user)
 
     assert result is not None
     assert len(result.enriched_source_media_items) == 1
-    assert result.enriched_source_media_items[0].presigned_url == "https://signed.url"
+    assert (
+        result.enriched_source_media_items[0].presigned_url
+        == "https://signed.url"
+    )
 
 
 @pytest.mark.anyio

@@ -34,7 +34,9 @@ class GcsService:
         self.client = storage.Client(project=self.cfg.PROJECT_ID)
         self.bucket_name = bucket_name or self.cfg.GENMEDIA_BUCKET
         self.bucket = self.client.bucket(self.bucket_name)
-        logger.info(f"GcsService initialized for bucket: gs://{self.bucket_name}")
+        logger.info(
+            f"GcsService initialized for bucket: gs://{self.bucket_name}"
+        )
 
     def download_from_gcs(
         self,
@@ -135,7 +137,9 @@ class GcsService:
         """
         try:
             if not self.bucket_name:
-                logger.error("GCS bucket name is not configured. Aborting upload.")
+                logger.error(
+                    "GCS bucket name is not configured. Aborting upload."
+                )
                 return None
 
             if not pathlib.Path(local_path).is_file():
@@ -245,5 +249,7 @@ class GcsService:
             )
             return None
         except exceptions.GoogleAPICallError as e:
-            logger.error(f"Failed to download '{destination_blob_name}' from GCS: {e}")
+            logger.error(
+                f"Failed to download '{destination_blob_name}' from GCS: {e}"
+            )
             return None

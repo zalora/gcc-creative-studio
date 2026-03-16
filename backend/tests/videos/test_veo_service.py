@@ -61,7 +61,9 @@ def mock_gemini_service():
 def mock_gcs_service():
     service = AsyncMock()
     service.download_from_gcs = AsyncMock(return_value="/tmp/local_video.mp4")
-    service.upload_file_to_gcs = AsyncMock(return_value="gs://bucket/uploaded.mp4")
+    service.upload_file_to_gcs = AsyncMock(
+        return_value="gs://bucket/uploaded.mp4"
+    )
     return service
 
 
@@ -83,7 +85,9 @@ def veo_service(
 
 @pytest.fixture
 def sample_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.fixture
@@ -201,7 +205,9 @@ class TestBackgroundWorkers:
         # Mock WorkerDatabase Context
         mock_db_context = AsyncMock()
         mock_db_factory = AsyncMock(return_value=mock_db_context)
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         # Mock GenAI SDK setup
         mock_client = MagicMock()
@@ -214,7 +220,9 @@ class TestBackgroundWorkers:
         from src.config.config_service import config_service as cfg
 
         mock_generated_video = MagicMock()
-        mock_generated_video.video.uri = f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        mock_generated_video.video.uri = (
+            f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        )
         mock_operation.response.generated_videos = [mock_generated_video]
 
         # Async mock calls inside thread wrapper
@@ -227,7 +235,9 @@ class TestBackgroundWorkers:
         mock_gcs_instance = MagicMock()
         mock_gcs_class.return_value = mock_gcs_instance
         mock_gcs_instance.download_from_gcs.return_value = "/tmp/local.mp4"
-        mock_gcs_instance.upload_file_to_gcs.return_value = "gs://bucket/thumb.png"
+        mock_gcs_instance.upload_file_to_gcs.return_value = (
+            "gs://bucket/thumb.png"
+        )
         mock_thumb.return_value = "/tmp/thumbnails/thumb.png"
 
         # Mock Repos inside the context
@@ -248,7 +258,9 @@ class TestBackgroundWorkers:
 
             mock_gemini_service = AsyncMock()
             mock_gemini_service_class.return_value = mock_gemini_service
-            mock_gemini_service.enhance_prompt_from_dto.return_value = "Enhanced Prompt"
+            mock_gemini_service.enhance_prompt_from_dto.return_value = (
+                "Enhanced Prompt"
+            )
 
             # Execute directly (Sync call is okay if patching runs or if it creates full isolated loop)
             # Since _process_video_in_background runs loop.run_until_complete inside,
@@ -282,7 +294,9 @@ class TestBackgroundWorkers:
         # line 114: async with WorkerDatabase() as db_factory:
         # WorkerDatabase() returns instance. __aenter__ returns result.
         # So mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         # Mock GenAI SDK client
         mock_client = MagicMock()
@@ -294,7 +308,9 @@ class TestBackgroundWorkers:
         from src.config.config_service import config_service as cfg
 
         mock_generated_video = MagicMock()
-        mock_generated_video.video.uri = f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        mock_generated_video.video.uri = (
+            f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        )
         mock_operation.response.generated_videos = [mock_generated_video]
 
         mock_client.models.generate_videos.return_value = mock_operation
@@ -324,7 +340,9 @@ class TestBackgroundWorkers:
 
             mock_gemini_service = AsyncMock()
             mock_gemini_service_class.return_value = mock_gemini_service
-            mock_gemini_service.enhance_prompt_from_dto.return_value = "Enhanced Prompt"
+            mock_gemini_service.enhance_prompt_from_dto.return_value = (
+                "Enhanced Prompt"
+            )
 
             mock_gcs_service = MagicMock()
             mock_gcs_class.return_value = mock_gcs_service
@@ -372,7 +390,9 @@ class TestBackgroundWorkers:
         # Mock WorkerDatabase Context
         mock_db_context = AsyncMock()
         mock_db_factory = MagicMock(return_value=mock_db_context)
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         mock_thumb.return_value = "/tmp/thumbnails/thumb.png"
 
@@ -462,7 +482,9 @@ class TestBackgroundWorkers:
 
         mock_db_context = AsyncMock()
         mock_db_factory = MagicMock(return_value=mock_db_context)
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         mock_client = MagicMock()
         mock_genai_init.return_value = mock_client
@@ -472,7 +494,9 @@ class TestBackgroundWorkers:
         from src.config.config_service import config_service as cfg
 
         mock_generated_video = MagicMock()
-        mock_generated_video.video.uri = f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        mock_generated_video.video.uri = (
+            f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        )
         mock_operation.response.generated_videos = [mock_generated_video]
 
         mock_client.models.generate_videos.return_value = mock_operation
@@ -505,7 +529,9 @@ class TestBackgroundWorkers:
 
             mock_gemini_service = AsyncMock()
             mock_gemini_service_class.return_value = mock_gemini_service
-            mock_gemini_service.enhance_prompt_from_dto.return_value = "Enhanced Prompt"
+            mock_gemini_service.enhance_prompt_from_dto.return_value = (
+                "Enhanced Prompt"
+            )
 
             mock_gcs_service = MagicMock()
             mock_gcs_class.return_value = mock_gcs_service
@@ -538,7 +564,9 @@ class TestBackgroundWorkers:
 
         mock_db_context = AsyncMock()
         mock_db_factory = MagicMock(return_value=mock_db_context)
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         mock_client = MagicMock()
         mock_genai_init.return_value = mock_client
@@ -605,7 +633,9 @@ class TestBackgroundWorkers:
 
         mock_db_context = AsyncMock()
         mock_db_factory = MagicMock(return_value=mock_db_context)
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         mock_client = MagicMock()
         mock_genai_init.return_value = mock_client
@@ -615,7 +645,9 @@ class TestBackgroundWorkers:
         from src.config.config_service import config_service as cfg
 
         mock_generated_video = MagicMock()
-        mock_generated_video.video.uri = f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        mock_generated_video.video.uri = (
+            f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        )
         mock_operation.response.generated_videos = [mock_generated_video]
 
         mock_client.models.generate_videos.return_value = mock_operation
@@ -687,7 +719,9 @@ class TestBackgroundWorkers:
 
         mock_db_context = AsyncMock()
         mock_db_factory = MagicMock(return_value=mock_db_context)
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         mock_client = MagicMock()
         mock_genai_init.return_value = mock_client
@@ -697,7 +731,9 @@ class TestBackgroundWorkers:
         from src.config.config_service import config_service as cfg
 
         mock_generated_video = MagicMock()
-        mock_generated_video.video.uri = f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        mock_generated_video.video.uri = (
+            f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        )
         mock_operation.response.generated_videos = [mock_generated_video]
 
         mock_client.models.generate_videos.return_value = mock_operation
@@ -774,7 +810,9 @@ class TestBackgroundWorkers:
 
         mock_db_context = AsyncMock()
         mock_db_factory = MagicMock(return_value=mock_db_context)
-        mock_worker_db_class.return_value.__aenter__.return_value = mock_db_factory
+        mock_worker_db_class.return_value.__aenter__.return_value = (
+            mock_db_factory
+        )
 
         mock_client = MagicMock()
         mock_genai_init.return_value = mock_client
@@ -784,7 +822,9 @@ class TestBackgroundWorkers:
         from src.config.config_service import config_service as cfg
 
         mock_generated_video = MagicMock()
-        mock_generated_video.video.uri = f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        mock_generated_video.video.uri = (
+            f"gs://{cfg.GENMEDIA_BUCKET}/output_0.mp4"
+        )
         mock_operation.response.generated_videos = [mock_generated_video]
 
         mock_client.models.generate_videos.return_value = mock_operation

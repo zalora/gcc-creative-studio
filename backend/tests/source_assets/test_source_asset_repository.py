@@ -18,7 +18,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.source_assets.dto.source_asset_search_dto import SourceAssetSearchDto
-from src.source_assets.repository.source_asset_repository import SourceAssetRepository
+from src.source_assets.repository.source_asset_repository import (
+    SourceAssetRepository,
+)
 from src.source_assets.schema.source_asset_model import (
     AssetScopeEnum,
     AssetTypeEnum,
@@ -103,7 +105,9 @@ async def test_query_success():
 async def test_find_by_scope_and_types_success():
     mock_db = AsyncMock()
     # Use valid AssetTypeEnum value
-    mock_asset = get_dummy_source_asset(id=3, scope="system", asset_type="vto_product")
+    mock_asset = get_dummy_source_asset(
+        id=3, scope="system", asset_type="vto_product"
+    )
     mock_result = MagicMock()
     mock_result.scalars().all.return_value = [mock_asset]
     mock_db.execute.return_value = mock_result
@@ -157,7 +161,9 @@ async def test_get_by_gcs_uri_success():
 @pytest.mark.anyio
 async def test_find_system_and_private_assets_by_types_success():
     mock_db = AsyncMock()
-    mock_asset = get_dummy_source_asset(id=6, scope="system", asset_type="vto_product")
+    mock_asset = get_dummy_source_asset(
+        id=6, scope="system", asset_type="vto_product"
+    )
     mock_result = MagicMock()
     mock_result.scalars().all.return_value = [mock_asset]
     mock_db.execute.return_value = mock_result

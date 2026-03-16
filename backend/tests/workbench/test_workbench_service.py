@@ -48,14 +48,14 @@ async def test_render_timeline_success_video_only(service):
     request = TimelineRequest(clips=[clip])
 
     # 2. Patch downloads and subprocesses
-    with patch("src.workbench.service.urllib.request.urlretrieve") as mock_download:
+    with patch(
+        "src.workbench.service.urllib.request.urlretrieve"
+    ) as mock_download:
         with patch("src.workbench.service.subprocess.run") as mock_run:
             # First call is for ffprobe
             mock_process_ffprobe = MagicMock()
             mock_process_ffprobe.returncode = 0
-            mock_process_ffprobe.stdout = (
-                b'{"streams": [{"codec_type": "video"}, {"codec_type": "audio"}]}'
-            )
+            mock_process_ffprobe.stdout = b'{"streams": [{"codec_type": "video"}, {"codec_type": "audio"}]}'
 
             # Second call is for ffmpeg
             mock_process_ffmpeg = MagicMock()
@@ -103,7 +103,9 @@ async def test_render_timeline_with_audio_gaps(service):
     )
     request = TimelineRequest(clips=[video_clip, audio_clip])
 
-    with patch("src.workbench.service.urllib.request.urlretrieve") as mock_download:
+    with patch(
+        "src.workbench.service.urllib.request.urlretrieve"
+    ) as mock_download:
         with patch("src.workbench.service.subprocess.run") as mock_run:
             # Pre-populate ffprobe for two different URL downloads
             mock_ff_video = MagicMock(
@@ -115,10 +117,16 @@ async def test_render_timeline_with_audio_gaps(service):
                 stdout=b'{"streams": [{"codec_type": "audio"}]}',
             )
 
-            mock_process_ffmpeg = MagicMock(returncode=0, stdout=b"", stderr=b"")
+            mock_process_ffmpeg = MagicMock(
+                returncode=0, stdout=b"", stderr=b""
+            )
 
             # sequence: ffprobe lists for 2 unique files, then 1 ffmpeg
-            mock_run.side_effect = [mock_ff_video, mock_ff_audio, mock_process_ffmpeg]
+            mock_run.side_effect = [
+                mock_ff_video,
+                mock_ff_audio,
+                mock_process_ffmpeg,
+            ]
 
             output_path, temp_dir = await service.render_timeline(request)
 
@@ -155,7 +163,9 @@ async def test_render_timeline_ffmpeg_failure(service):
                 returncode=0,
                 stdout=b'{"streams": [{"codec_type": "video"}]}',
             )
-            mock_ffmpeg = MagicMock(returncode=1, stderr=b"FFmpeg error description")
+            mock_ffmpeg = MagicMock(
+                returncode=1, stderr=b"FFmpeg error description"
+            )
 
             mock_run.side_effect = [mock_ffprobe, mock_ffmpeg]
 

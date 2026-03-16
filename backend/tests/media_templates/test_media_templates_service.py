@@ -74,7 +74,9 @@ async def test_enrich_source_asset_link(service):
     link = SourceAssetLink(asset_id=123, role="input")
     asset_doc = MagicMock(gcs_uri="gs://b/a.jpg")
     service.mock_source_asset_repo.get_by_id.return_value = asset_doc
-    service.mock_iam_signer.generate_presigned_url.return_value = "https://signed.url"
+    service.mock_iam_signer.generate_presigned_url.return_value = (
+        "https://signed.url"
+    )
 
     result = await service._enrich_source_asset_link(link)
     assert result is not None
@@ -118,7 +120,9 @@ async def test_find_all_templates(service):
     mock_query_result.page_size = 10
     mock_query_result.total_pages = 1
     service.mock_template_repo.query.return_value = mock_query_result
-    service.mock_iam_signer.generate_presigned_url.return_value = "https://signed.url"
+    service.mock_iam_signer.generate_presigned_url.return_value = (
+        "https://signed.url"
+    )
 
     result = await service.find_all_templates(search_dto)
     assert result.count == 1
@@ -171,7 +175,9 @@ async def test_create_template_from_media_item_success(service):
     service.mock_gemini_service.generate_structured_prompt.return_value = '{"name": "Catchy Dog", "description": "A dog", "industry": "Automotive", "brand": "BrandX", "tags": ["dog"]}'
 
     mock_workspace = MagicMock(id=88)
-    service.mock_workspace_repo.get_public_workspace.return_value = mock_workspace
+    service.mock_workspace_repo.get_public_workspace.return_value = (
+        mock_workspace
+    )
 
     result = await service.create_template_from_media_item(123, current_user)
     assert result is not None

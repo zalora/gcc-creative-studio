@@ -72,7 +72,9 @@ class TestWorkspaceRepository:
         assert result is False
 
     @pytest.mark.anyio
-    async def test_get_public_workspace_success(self, workspace_repo, db_session_mock):
+    async def test_get_public_workspace_success(
+        self, workspace_repo, db_session_mock
+    ):
         import datetime
 
         from src.workspaces.schema.workspace_model import Workspace
@@ -122,7 +124,9 @@ class TestWorkspaceRepository:
         assert response[0].id == 2
 
     @pytest.mark.anyio
-    async def test_find_by_member_id_success(self, workspace_repo, db_session_mock):
+    async def test_find_by_member_id_success(
+        self, workspace_repo, db_session_mock
+    ):
         import datetime
 
         from src.workspaces.schema.workspace_model import Workspace
@@ -145,7 +149,9 @@ class TestWorkspaceRepository:
         assert response[0].id == 3
 
     @pytest.mark.anyio
-    async def test_create_with_members_success(self, workspace_repo, db_session_mock):
+    async def test_create_with_members_success(
+        self, workspace_repo, db_session_mock
+    ):
         import datetime
 
         from src.workspaces.schema.workspace_model import (
@@ -180,7 +186,10 @@ class TestWorkspaceRepository:
     ):
         import datetime
 
-        from src.workspaces.schema.workspace_model import Workspace, WorkspaceMember
+        from src.workspaces.schema.workspace_model import (
+            Workspace,
+            WorkspaceMember,
+        )
 
         now = datetime.datetime.now(datetime.UTC)
         mock_result = MagicMock()

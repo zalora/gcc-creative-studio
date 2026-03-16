@@ -58,7 +58,9 @@ class TestCreateUserIfNotExists:
         mock_user_repo.create.assert_not_called()
 
     @pytest.mark.anyio
-    async def test_user_does_not_exist(self, user_service, mock_user_repo, mock_user):
+    async def test_user_does_not_exist(
+        self, user_service, mock_user_repo, mock_user
+    ):
         # Setup: Mock repo to return None (user doesn't exist)
         mock_user_repo.get_by_email.return_value = None
         # Mock create to return the created user
@@ -86,7 +88,9 @@ class TestGetUserById:
     """Tests for UserService.get_user_by_id."""
 
     @pytest.mark.anyio
-    async def test_get_user_found(self, user_service, mock_user_repo, mock_user):
+    async def test_get_user_found(
+        self, user_service, mock_user_repo, mock_user
+    ):
         mock_user_repo.get_by_id.return_value = mock_user
 
         result = await user_service.get_user_by_id(1)

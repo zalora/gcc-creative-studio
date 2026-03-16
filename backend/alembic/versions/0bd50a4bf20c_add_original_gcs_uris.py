@@ -41,7 +41,9 @@ def upgrade() -> None:
     if "original_gcs_uris" not in media_columns:
         op.add_column(
             "media_items",
-            sa.Column("original_gcs_uris", sa.ARRAY(sa.String()), nullable=True),
+            sa.Column(
+                "original_gcs_uris", sa.ARRAY(sa.String()), nullable=True
+            ),
         )
 
     source_columns = [c["name"] for c in inspector.get_columns("source_assets")]

@@ -59,7 +59,9 @@ def upgrade() -> None:
             ["user_id"],
             ["users.id"],
         ),
-        sa.ForeignKeyConstraint(["workflow_id"], ["workflows.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["workflow_id"], ["workflows.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###

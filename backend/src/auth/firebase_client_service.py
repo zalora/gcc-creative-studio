@@ -54,7 +54,9 @@ class FirebaseClient:
                     # If ADC are not found or lack permissions, this will raise an error.
                     # e.g., google.auth.exceptions.DefaultCredentialsError
 
-                logger.info(f"Firebase App Name: {firebase_admin.get_app().name}")
+                logger.info(
+                    f"Firebase App Name: {firebase_admin.get_app().name}"
+                )
 
                 # Check if reauthentication is needed
                 self.check_adc_authentication()

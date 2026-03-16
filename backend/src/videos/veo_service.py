@@ -133,9 +133,11 @@ def _process_video_in_background(
                         cfg = config_service
                         gcs_output_directory = f"gs://{cfg.GENMEDIA_BUCKET}"
 
-                        rewritten_prompt = await gemini_service.enhance_prompt_from_dto(
-                            dto=request_dto,
-                            target_type=PromptTargetEnum.VIDEO,
+                        rewritten_prompt = (
+                            await gemini_service.enhance_prompt_from_dto(
+                                dto=request_dto,
+                                target_type=PromptTargetEnum.VIDEO,
+                            )
                         )
                         original_prompt = request_dto.prompt
                         request_dto.prompt = rewritten_prompt
@@ -244,9 +246,15 @@ def _process_video_in_background(
                                         mime_type=parent_item.mime_type,
                                     )
 
-                                    if gen_input.role == AssetRoleEnum.START_FRAME:
+                                    if (
+                                        gen_input.role
+                                        == AssetRoleEnum.START_FRAME
+                                    ):
                                         start_image_for_api = image_for_api
-                                    elif gen_input.role == AssetRoleEnum.END_FRAME:
+                                    elif (
+                                        gen_input.role
+                                        == AssetRoleEnum.END_FRAME
+                                    ):
                                         end_image_for_api = image_for_api
                                     elif (
                                         gen_input.role
@@ -364,11 +372,18 @@ def _process_video_in_background(
                         # Download the generated video and create thumbnail
                         thumbnail_path = ""
 
-                        final_source_media_items = request_dto.source_media_items
+                        final_source_media_items = (
+                            request_dto.source_media_items
+                        )
                         permanent_thumbnail_gcs_uris = []
 
-                        for generated_video in operation.response.generated_videos:
-                            if generated_video.video and generated_video.video.uri:
+                        for (
+                            generated_video
+                        ) in operation.response.generated_videos:
+                            if (
+                                generated_video.video
+                                and generated_video.video.uri
+                            ):
                                 output_path = f"{generated_video.video.uri.replace(f'gs://{cfg.GENMEDIA_BUCKET}/', '')}"
 
                                 # Step 1: Download the Video from GCS
@@ -445,7 +460,10 @@ def _process_video_in_background(
                             "generation_time": generation_time,
                             "num_media": len(permanent_gcs_uris),
                             "source_media_items": (
-                                [item.model_dump() for item in final_source_media_items]
+                                [
+                                    item.model_dump()
+                                    for item in final_source_media_items
+                                ]
                                 if final_source_media_items
                                 else None
                             ),
@@ -478,7 +496,9 @@ def _process_video_in_background(
                             "status": JobStatusEnum.FAILED,
                             "error_message": str(e),
                         }
-                        await media_repo.update(media_item_id, error_update_data)
+                        await media_repo.update(
+                            media_item_id, error_update_data
+                        )
 
         loop.run_until_complete(_async_worker())
         loop.close()
@@ -541,7 +561,9 @@ def _process_video_concatenation_in_background(
                         for video_input in request_dto.inputs:
                             gcs_uri: str | None = None
                             if video_input.type == "media_item":
-                                item = await media_repo.get_by_id(video_input.id)
+                                item = await media_repo.get_by_id(
+                                    video_input.id
+                                )
                                 if not item or not item.gcs_uris:
                                     raise ValueError(
                                         f"MediaItem '{video_input.id}' not found or has no video.",
@@ -575,7 +597,9 @@ def _process_video_concatenation_in_background(
                                 destination_file_path=f"{temp_dir}/{video_input.id}.mp4",
                             )
                             if not local_path:
-                                raise Exception(f"Failed to download video: {gcs_uri}")
+                                raise Exception(
+                                    f"Failed to download video: {gcs_uri}"
+                                )
                             local_video_paths.append(local_path)
 
                         # 2. Concatenate them
@@ -640,7 +664,9 @@ def _process_video_concatenation_in_background(
                             "status": JobStatusEnum.FAILED,
                             "error_message": str(e),
                         }
-                        await media_repo.update(media_item_id, error_update_data)
+                        await media_repo.update(
+                            media_item_id, error_update_data
+                        )
                     finally:
                         if os.path.exists(temp_dir):
                             shutil.rmtree(temp_dir)
@@ -819,7 +845,9 @@ class VeoService:
             aspect_ratio=request_dto.aspect_ratio,
             # We could store the input IDs in source_assets or raw_data for traceability
             raw_data={
-                "concatenation_inputs": [i.model_dump() for i in request_dto.inputs],
+                "concatenation_inputs": [
+                    i.model_dump() for i in request_dto.inputs
+                ],
             },
         )
 

@@ -35,7 +35,9 @@ class WorkbenchService:
         self.gcs_service = gcs_service
         self.storage_client = storage.Client()
 
-    async def render_timeline(self, request: TimelineRequest) -> tuple[str, str]:
+    async def render_timeline(
+        self, request: TimelineRequest
+    ) -> tuple[str, str]:
         """Renders the timeline and returns (path_to_video, path_to_temp_dir).
         The caller is responsible for cleaning up the temp dir.
         """
@@ -70,7 +72,9 @@ class WorkbenchService:
             unique_urls_list = list(all_unique_urls)
 
             # Map URL to Input Index for FFmpeg
-            url_to_input_idx = {url: i for i, url in enumerate(unique_urls_list)}
+            url_to_input_idx = {
+                url: i for i, url in enumerate(unique_urls_list)
+            }
 
             for i, url in enumerate(unique_urls_list):
                 parsed = urlparse(url)
@@ -126,7 +130,9 @@ class WorkbenchService:
                         f"[{input_idx}:v]trim=start={clip.offset}:duration={clip.duration},setpts=PTS-STARTPTS{v_label}",
                     )
                 else:
-                    filter_chains.append(f"color=s=1280x720:d={clip.duration}{v_label}")
+                    filter_chains.append(
+                        f"color=s=1280x720:d={clip.duration}{v_label}"
+                    )
                 concat_v_in.append(v_label)
 
                 # Audio (Trim + ASETPTS)

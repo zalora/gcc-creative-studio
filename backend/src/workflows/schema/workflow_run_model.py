@@ -48,7 +48,9 @@ class WorkflowRun(Base):
         nullable=False,
     )
 
-    workflow_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    workflow_snapshot: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False
+    )
 
     started_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),

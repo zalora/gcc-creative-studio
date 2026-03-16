@@ -26,7 +26,9 @@ from src.common.storage_service import GcsService
 logger = logging.getLogger(__name__)
 
 
-def generate_image_thumbnail_bytes(image_bytes: bytes, mime_type: str) -> bytes | None:
+def generate_image_thumbnail_bytes(
+    image_bytes: bytes, mime_type: str
+) -> bytes | None:
     """Generates a thumbnail from image bytes using PIL.
 
     Args:
@@ -119,9 +121,13 @@ def generate_thumbnail(video_path: str) -> str | None:
         return None
 
     thumbnail_filename = (
-        "thumbnail_" + os.path.splitext(os.path.basename(video_path))[0] + ".png"
+        "thumbnail_"
+        + os.path.splitext(os.path.basename(video_path))[0]
+        + ".png"
     )
-    thumbnail_path = os.path.join(os.path.dirname(video_path), thumbnail_filename)
+    thumbnail_path = os.path.join(
+        os.path.dirname(video_path), thumbnail_filename
+    )
 
     command = [
         "ffmpeg",
@@ -163,7 +169,9 @@ def concatenate_videos(video_paths: list[str], output_path: str) -> str | None:
         return None
 
     # Create a temporary file to list the input videos for ffmpeg
-    list_file_path = os.path.join(os.path.dirname(output_path), "concat_list.txt")
+    list_file_path = os.path.join(
+        os.path.dirname(output_path), "concat_list.txt"
+    )
     with open(list_file_path, "w") as f:
         for path in video_paths:
             absolute_path = os.path.abspath(path)

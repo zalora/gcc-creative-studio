@@ -21,7 +21,9 @@ from src.galleries.dto.bulk_delete_dto import BulkDeleteDto
 from src.galleries.dto.bulk_download_dto import BulkDownloadDto
 from src.galleries.dto.gallery_response_dto import MediaItemResponse
 from src.galleries.dto.gallery_search_dto import GallerySearchDto
-from src.galleries.dto.unified_gallery_response import UnifiedGalleryItemResponse
+from src.galleries.dto.unified_gallery_response import (
+    UnifiedGalleryItemResponse,
+)
 from src.galleries.gallery_service import GalleryService
 from src.users.user_model import UserModel, UserRoleEnum
 from src.workspaces.workspace_auth_guard import WorkspaceAuth
@@ -91,7 +93,9 @@ async def get_single_gallery_item(
 ):
     """Get a single media item by its ID."""
     # The service now requires the user to perform authorization checks.
-    item = await service.get_media_by_id(item_id=item_id, current_user=current_user)
+    item = await service.get_media_by_id(
+        item_id=item_id, current_user=current_user
+    )
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

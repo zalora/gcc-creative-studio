@@ -27,7 +27,9 @@ from src.media_templates.schema.media_template_model import (
 )
 
 
-class MediaTemplateRepository(BaseRepository[MediaTemplate, MediaTemplateModel]):
+class MediaTemplateRepository(
+    BaseRepository[MediaTemplate, MediaTemplateModel]
+):
     """Handles all database operations for MediaTemplate objects."""
 
     def __init__(self, db: AsyncSession = Depends(get_db)):
@@ -42,13 +44,17 @@ class MediaTemplateRepository(BaseRepository[MediaTemplate, MediaTemplateModel])
         query = select(self.model)
 
         if search_dto.industry:
-            query = query.where(self.model.industry == search_dto.industry.value)
+            query = query.where(
+                self.model.industry == search_dto.industry.value
+            )
 
         if search_dto.brand:
             query = query.where(self.model.brand == search_dto.brand)
 
         if search_dto.mime_type:
-            query = query.where(self.model.mime_type == search_dto.mime_type.value)
+            query = query.where(
+                self.model.mime_type == search_dto.mime_type.value
+            )
 
         if search_dto.tag:
             # Postgres ARRAY contains check
@@ -71,11 +77,13 @@ class MediaTemplateRepository(BaseRepository[MediaTemplate, MediaTemplateModel])
 
         # Calculate pagination metadata
         page = (
-            (search_dto.limit > 0) and ((search_dto.offset // search_dto.limit) + 1)
+            (search_dto.limit > 0)
+            and ((search_dto.offset // search_dto.limit) + 1)
         ) or 1
         page_size = search_dto.limit
         total_pages = (
-            (search_dto.limit > 0) and ((total_count + page_size - 1) // page_size)
+            (search_dto.limit > 0)
+            and ((total_count + page_size - 1) // page_size)
         ) or 0
 
         return PaginationResponseDto[MediaTemplateModel](

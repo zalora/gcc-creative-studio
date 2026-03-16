@@ -206,7 +206,9 @@ class BaseRepositoryMixin(Generic[ModelType, SchemaType, IDType]):
         include_deleted: bool = False,
     ) -> list[SchemaType]:
         """Finds all documents with pagination, excluding soft-deleted ones."""
-        query = select(self.model).execution_options(include_deleted=include_deleted)
+        query = select(self.model).execution_options(
+            include_deleted=include_deleted
+        )
         result = await self.db.execute(query.limit(limit).offset(offset))
         items = result.scalars().all()
         return [self.schema.model_validate(item) for item in items]

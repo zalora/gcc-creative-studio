@@ -31,7 +31,9 @@ class UnifiedGalleryItemResponse(BaseModel):
     thumbnail_uris: list[str] = []
     deleted_at: datetime | None = None  # To support frontend filters
     # Map from 'metadata_' in SQLAlchemy model to 'metadata' in Pydantic
-    metadata: dict[str, Any] = Field(default_factory=dict, validation_alias="metadata_")
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, validation_alias="metadata_"
+    )
 
     @field_validator("metadata", mode="after")
     @classmethod

@@ -39,7 +39,9 @@ def upgrade() -> None:
         "media_items",
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
     )
-    op.add_column("media_items", sa.Column("deleted_by", sa.Integer(), nullable=True))
+    op.add_column(
+        "media_items", sa.Column("deleted_by", sa.Integer(), nullable=True)
+    )
     op.create_foreign_key(
         "media_items_deleted_by_fkey",
         "media_items",
@@ -52,7 +54,9 @@ def upgrade() -> None:
         "source_assets",
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
     )
-    op.add_column("source_assets", sa.Column("deleted_by", sa.Integer(), nullable=True))
+    op.add_column(
+        "source_assets", sa.Column("deleted_by", sa.Integer(), nullable=True)
+    )
     op.create_foreign_key(
         "source_assets_deleted_by_fkey",
         "source_assets",
@@ -181,6 +185,8 @@ def downgrade() -> None:
     op.drop_column("source_assets", "deleted_by")
     op.drop_column("source_assets", "deleted_at")
 
-    op.drop_constraint("media_items_deleted_by_fkey", "media_items", type_="foreignkey")
+    op.drop_constraint(
+        "media_items_deleted_by_fkey", "media_items", type_="foreignkey"
+    )
     op.drop_column("media_items", "deleted_by")
     op.drop_column("media_items", "deleted_at")

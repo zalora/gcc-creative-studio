@@ -100,7 +100,9 @@ class TestInviteUserToWorkspace:
         )
 
         with pytest.raises(HTTPException) as exc_info:
-            await workspace_service.invite_user_to_workspace(999, invite_dto, mock_user)
+            await workspace_service.invite_user_to_workspace(
+                999, invite_dto, mock_user
+            )
 
         assert exc_info.value.status_code == 404
         assert "Workspace not found" in exc_info.value.detail
@@ -121,7 +123,9 @@ class TestInviteUserToWorkspace:
         )
 
         with pytest.raises(HTTPException) as exc_info:
-            await workspace_service.invite_user_to_workspace(1, invite_dto, mock_user)
+            await workspace_service.invite_user_to_workspace(
+                1, invite_dto, mock_user
+            )
 
         assert exc_info.value.status_code == 403
         assert "Only the workspace owner" in exc_info.value.detail
@@ -152,7 +156,9 @@ class TestInviteUserToWorkspace:
         )
 
         assert result is None
-        mock_user_repo.get_by_email.assert_called_once_with("unknown@example.com")
+        mock_user_repo.get_by_email.assert_called_once_with(
+            "unknown@example.com"
+        )
 
     @pytest.mark.anyio
     async def test_success_invite(
@@ -177,8 +183,12 @@ class TestInviteUserToWorkspace:
         )
         mock_user_repo.get_by_email.return_value = invited_user
 
-        updated_workspace = WorkspaceModel(id=1, name="Test", owner_id=mock_user.id)
-        mock_workspace_repo.add_member_to_workspace.return_value = updated_workspace
+        updated_workspace = WorkspaceModel(
+            id=1, name="Test", owner_id=mock_user.id
+        )
+        mock_workspace_repo.add_member_to_workspace.return_value = (
+            updated_workspace
+        )
 
         invite_dto = InviteUserDto(
             email="guest@example.com",

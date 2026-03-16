@@ -35,7 +35,9 @@ def test_create_veo_dto_valid():
 
 def test_validate_video_aspect_ratio_error():
     with pytest.raises(ValidationError) as exc_info:
-        CreateVeoDto(prompt="Test", workspace_id=1, aspect_ratio="1:1")  # Invalid
+        CreateVeoDto(
+            prompt="Test", workspace_id=1, aspect_ratio="1:1"
+        )  # Invalid
     assert "Invalid aspect ratio for video" in str(exc_info.value)
 
 
@@ -88,12 +90,16 @@ def test_validate_source_media_items_conflicting_inputs():
             ],
             source_media_items=[],  # Force validator to run
         )
-    assert "Reference images cannot be used at the same time" in str(exc_info.value)
+    assert "Reference images cannot be used at the same time" in str(
+        exc_info.value
+    )
 
 
 def test_validate_video_generation_model_error():
     with pytest.raises(ValidationError) as exc_info:
-        CreateVeoDto(prompt="Test", workspace_id=1, generation_model="invalid_model")
+        CreateVeoDto(
+            prompt="Test", workspace_id=1, generation_model="invalid_model"
+        )
     assert (
         "Invalid generation model for video" in str(exc_info.value)
         or "enum" in str(exc_info.value).lower()

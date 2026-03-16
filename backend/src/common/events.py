@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 @event.listens_for(Session, "do_orm_execute")
 def _add_soft_delete_criteria(execute_state):
     """Event listener to automatically filter out soft-deleted Users and MediaItems."""
-    include_deleted = execute_state.execution_options.get("include_deleted", False)
+    include_deleted = execute_state.execution_options.get(
+        "include_deleted", False
+    )
 
     # Only apply to SELECT statements
     if not execute_state.is_select:

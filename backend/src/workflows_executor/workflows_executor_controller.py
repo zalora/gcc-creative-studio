@@ -24,7 +24,9 @@ from src.workflows_executor.dto.workflows_executor_dto import (
     GenerateVideoRequest,
     VirtualTryOnRequest,
 )
-from src.workflows_executor.workflows_executor_service import WorkflowsExecutorService
+from src.workflows_executor.workflows_executor_service import (
+    WorkflowsExecutorService,
+)
 
 router = APIRouter(
     prefix="/api/workflows-executor",

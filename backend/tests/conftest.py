@@ -39,7 +39,9 @@ resourcemanager_v3.ProjectsClient = MagicMock()
 @pytest.fixture(scope="session", autouse=True)
 def mock_migrations():
     """Bypasses database migrations during startup."""
-    with patch("src.database_migrations.run_pending_migrations", AsyncMock()) as mock:
+    with patch(
+        "src.database_migrations.run_pending_migrations", AsyncMock()
+    ) as mock:
         yield mock
 
 

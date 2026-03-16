@@ -39,7 +39,9 @@ from src.workflows.dto.batch_execution_dto import (
 )
 from src.workflows.dto.workflow_search_dto import WorkflowSearchDto
 from src.workflows.repository.workflow_repository import WorkflowRepository
-from src.workflows.repository.workflow_run_repository import WorkflowRunRepository
+from src.workflows.repository.workflow_run_repository import (
+    WorkflowRunRepository,
+)
 from src.workflows.schema.workflow_model import (
     NodeTypes,
     StepOutputReference,
@@ -97,14 +99,20 @@ class WorkflowService:
             step_type = step.type.value.lower()
             step_name = step.step_id
             config = step.settings if step.settings else {}
-            config = config.model_dump() if isinstance(config, BaseModel) else config
+            config = (
+                config.model_dump() if isinstance(config, BaseModel) else config
+            )
 
             # Resolve inputs
             resolved_inputs = {}
 
             def resolve_value(value):
                 # If it's a StepOutputReference (dict with step and output)
-                if isinstance(value, dict) and "step" in value and "output" in value:
+                if (
+                    isinstance(value, dict)
+                    and "step" in value
+                    and "output" in value
+                ):
                     ref_step_id = value["step"]
                     ref_output_name = value["output"]
 
@@ -131,7 +139,9 @@ class WorkflowService:
                     "call": "http.post",
                     "args": {
                         "url": f"{BACKEND_EXECUTOR_URL}/{step_type}",
-                        "headers": {"Authorization": "${args.user_auth_header}"},
+                        "headers": {
+                            "Authorization": "${args.user_auth_header}"
+                        },
                         "body": body,
                     },
                     "result": f"{step_name}_result",
@@ -161,7 +171,9 @@ class WorkflowService:
             workflows_v1.ExecutionHistoryLevel.EXECUTION_HISTORY_DETAILED
         )
         if config_service.BACKEND_SERVICE_ACCOUNT_EMAIL:
-            workflow.service_account = config_service.BACKEND_SERVICE_ACCOUNT_EMAIL
+            workflow.service_account = (
+                config_service.BACKEND_SERVICE_ACCOUNT_EMAIL
+            )
 
         request = workflows_v1.CreateWorkflowRequest(
             parent=f"projects/{PROJECT_ID}/locations/{LOCATION}",
@@ -185,7 +197,9 @@ class WorkflowService:
             workflows_v1.ExecutionHistoryLevel.EXECUTION_HISTORY_DETAILED
         )
         if config_service.BACKEND_SERVICE_ACCOUNT_EMAIL:
-            workflow.service_account = config_service.BACKEND_SERVICE_ACCOUNT_EMAIL
+            workflow.service_account = (
+                config_service.BACKEND_SERVICE_ACCOUNT_EMAIL
+            )
 
         request = workflows_v1.UpdateWorkflowRequest(
             workflow=workflow,
@@ -240,7 +254,9 @@ class WorkflowService:
                 description=workflow_dto.description,
                 steps=workflow_dto.steps,
             )
-            created_workflow = await self.workflow_repository.create(workflow_model)
+            created_workflow = await self.workflow_repository.create(
+                workflow_model
+            )
 
             # 3. Generate GCP Workflow YAML (using the same ID)
             yaml_output = self._generate_workflow_yaml(created_workflow)
@@ -252,7 +268,9 @@ class WorkflowService:
                 self._create_gcp_workflow(yaml_output, workflow_id)
             except Exception as e:
                 # Rollback DB creation if GCP creation fails
-                logger.error(f"Failed to create GCP workflow: {e}. Rolling back DB.")
+                logger.error(
+                    f"Failed to create GCP workflow: {e}. Rolling back DB."
+                )
                 await self.workflow_repository.delete(created_workflow.id)
                 raise e
 
@@ -306,7 +324,9 @@ class WorkflowService:
             # The GCP workflow ID matches the DB ID (which is already in the format id-UUID)
             self._update_gcp_workflow(yaml_output, workflow_id)
 
-            return await self.workflow_repository.update(workflow_id, updated_model)
+            return await self.workflow_repository.update(
+                workflow_id, updated_model
+            )
         except ValidationError as e:
             raise ValueError(str(e))
 
@@ -424,7 +444,9 @@ class WorkflowService:
                 workspace_id = item.args.get("workspace_id")
 
                 for key, value in item.args.items():
-                    is_gcs_string = isinstance(value, str) and value.startswith("gs://")
+                    is_gcs_string = isinstance(value, str) and value.startswith(
+                        "gs://"
+                    )
                     is_gcs_list = (
                         isinstance(value, list)
                         and len(value) > 0
@@ -525,7 +547,9 @@ class WorkflowService:
             return None
 
         result = None
-        user_inputs = json.loads(execution.argument) if execution.argument else {}
+        user_inputs = (
+            json.loads(execution.argument) if execution.argument else {}
+        )
         if execution.state == executions_v1.Execution.State.SUCCEEDED:
             result = execution.result
 
@@ -559,11 +583,15 @@ class WorkflowService:
                 duration = time.time() - start_timestamp
 
         # Try to fetch snapshot from DB
-        logger.info(f"Attempting to fetch snapshot for execution_id: {execution_id}")
+        logger.info(
+            f"Attempting to fetch snapshot for execution_id: {execution_id}"
+        )
 
         # Ensure we check the short ID if a long ID is passed
         lookup_id = execution_id
-        if execution_id.startswith("projects/") or execution_id.startswith("//"):
+        if execution_id.startswith("projects/") or execution_id.startswith(
+            "//"
+        ):
             lookup_id = execution_id.rsplit("/", maxsplit=1)[-1]
 
         snapshot_run = await self.workflow_run_repository.get_by_id(lookup_id)
@@ -604,7 +632,10 @@ class WorkflowService:
         # --- Lazy Status Update Start ---
         # If we have a snapshot and its status is RUNNING but GCP says it's done, let's update the DB.
         # This acts as a lazy sync so we don't need a background poller.
-        if snapshot_run and snapshot_run.status == WorkflowRunStatusEnum.RUNNING.value:
+        if (
+            snapshot_run
+            and snapshot_run.status == WorkflowRunStatusEnum.RUNNING.value
+        ):
             final_status = None
             if execution.state == executions_v1.Execution.State.SUCCEEDED:
                 final_status = WorkflowRunStatusEnum.COMPLETED
@@ -632,7 +663,9 @@ class WorkflowService:
                         f"Lazily updated execution {execution_id} status to {final_status.value}",
                     )
                 except Exception as e:
-                    logger.warning(f"Failed to lazily update execution status: {e}")
+                    logger.warning(
+                        f"Failed to lazily update execution status: {e}"
+                    )
         # --- Lazy Status Update End ---
 
         user_input_step_id = workflow_model.steps[0].step_id
@@ -650,7 +683,9 @@ class WorkflowService:
                 "step_inputs": {},
                 "step_outputs": user_inputs,
                 "start_time": (
-                    execution.start_time.isoformat() if execution.start_time else None
+                    execution.start_time.isoformat()
+                    if execution.start_time
+                    else None
                 ),  # type: ignore
                 "end_time": (
                     execution.start_time.isoformat()  # type: ignore
@@ -674,7 +709,11 @@ class WorkflowService:
 
             # Find the step definition
             current_step = next(
-                (step for step in workflow_model.steps if step.step_id == step_id),
+                (
+                    step
+                    for step in workflow_model.steps
+                    if step.step_id == step_id
+                ),
                 None,
             )
             if not current_step:
@@ -715,7 +754,9 @@ class WorkflowService:
             "error": execution.error.context if execution.error else None,
             "step_entries": formatted_step_entries,
             "workflow_definition": (
-                workflow_model.model_dump(by_alias=True) if workflow_model else None
+                workflow_model.model_dump(by_alias=True)
+                if workflow_model
+                else None
             ),
         }
 
@@ -767,7 +808,9 @@ class WorkflowService:
                     "start_time": execution.start_time,
                     "end_time": execution.end_time,
                     "duration": round(duration, 2),
-                    "error": execution.error.context if execution.error else None,
+                    "error": (
+                        execution.error.context if execution.error else None
+                    ),
                 },
             )
 

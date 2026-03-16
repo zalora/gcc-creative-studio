@@ -63,7 +63,9 @@ def workflow_service(mock_workflow_repo, mock_run_repo):
 
 @pytest.fixture
 def sample_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.fixture
@@ -78,7 +80,9 @@ def sample_workflow_model():
                 step_id="step_1",
                 type=NodeTypes.GENERATE_TEXT,
                 inputs=GenerateTextInputs(prompt="Hello World"),
-                settings=GenerateTextSettings(model="gemini-1.5", temperature=0.7),
+                settings=GenerateTextSettings(
+                    model="gemini-1.5", temperature=0.7
+                ),
             ),
         ],
     )
@@ -94,7 +98,9 @@ def sample_workflow_create_dto():
                 step_id="step_1",
                 type=NodeTypes.GENERATE_TEXT,
                 inputs=GenerateTextInputs(prompt="Hello World"),
-                settings=GenerateTextSettings(model="gemini-1.5", temperature=0.7),
+                settings=GenerateTextSettings(
+                    model="gemini-1.5", temperature=0.7
+                ),
             ),
         ],
     )
@@ -103,12 +109,16 @@ def sample_workflow_create_dto():
 class TestWorkflowServiceConfig:
     """Tests for basic workflow generation logic."""
 
-    def test_generate_workflow_yaml(self, workflow_service, sample_workflow_model):
+    def test_generate_workflow_yaml(
+        self, workflow_service, sample_workflow_model
+    ):
         from src.config.config_service import config_service
 
         config_service.WORKFLOWS_LOCATION = "us-central1"
 
-        yaml_output = workflow_service._generate_workflow_yaml(sample_workflow_model)
+        yaml_output = workflow_service._generate_workflow_yaml(
+            sample_workflow_model
+        )
 
         # Parse YAML to verify structure
         parsed = yaml.safe_load(yaml_output)
@@ -216,19 +226,25 @@ class TestExecuteWorkflow:
         sample_user,
     ):
         # Setup
-        workflow_service.get_by_id = AsyncMock(return_value=sample_workflow_model)
+        workflow_service.get_by_id = AsyncMock(
+            return_value=sample_workflow_model
+        )
 
         # Mock GCP Execution Client
         mock_exec_client = AsyncMock()
         mock_exec_client_class.return_value = mock_exec_client
 
         mock_response = MagicMock()
-        mock_response.name = "projects/p/locations/l/workflows/w/executions/exec-123"
+        mock_response.name = (
+            "projects/p/locations/l/workflows/w/executions/exec-123"
+        )
         mock_exec_client.create_workflow_execution = AsyncMock(
             return_value=mock_response,
         )
         # Wait, the method name in service is create_execution from AsyncClient
-        mock_exec_client.create_execution = AsyncMock(return_value=mock_response)
+        mock_exec_client.create_execution = AsyncMock(
+            return_value=mock_response
+        )
 
         args = {"workspace_id": "1"}
 
@@ -265,7 +281,9 @@ class TestGetExecutionDetails:
         mock_client = MagicMock()
         mock_exec_client_class.return_value = mock_client
         mock_execution = MagicMock()
-        mock_execution.name = "projects/p/locations/l/workflows/w/executions/e-123"
+        mock_execution.name = (
+            "projects/p/locations/l/workflows/w/executions/e-123"
+        )
         # Setup State
         from google.cloud.workflows import executions_v1 as exec_v1
 
@@ -290,13 +308,17 @@ class TestGetExecutionDetails:
         # Mock DB Snapshot
         mock_run = MagicMock()
         mock_run.id = "e-123"
-        mock_run.workflow_snapshot = sample_workflow_model.model_dump(mode="json")
+        mock_run.workflow_snapshot = sample_workflow_model.model_dump(
+            mode="json"
+        )
         # Ensure enum value string is passed
         mock_run.status = WorkflowRunStatusEnum.RUNNING.value
         mock_run_repo.get_by_id.return_value = mock_run
 
         # Setup mock get_by_id in service fallback
-        workflow_service.get_by_id = AsyncMock(return_value=sample_workflow_model)
+        workflow_service.get_by_id = AsyncMock(
+            return_value=sample_workflow_model
+        )
 
         # Execute
         details = await workflow_service.get_execution_details(
@@ -433,14 +455,18 @@ class TestListExecutions:
     """Tests for list_executions method."""
 
     @patch("src.workflows.workflow_service.executions_v1.ExecutionsClient")
-    def test_list_executions_success(self, mock_exec_client_class, workflow_service):
+    def test_list_executions_success(
+        self, mock_exec_client_class, workflow_service
+    ):
         mock_client = MagicMock()
         mock_exec_client_class.return_value = mock_client
 
         mock_response = MagicMock()
         mock_page = MagicMock()
         mock_execution = MagicMock()
-        mock_execution.name = "projects/p/locations/l/workflows/w/executions/e-123"
+        mock_execution.name = (
+            "projects/p/locations/l/workflows/w/executions/e-123"
+        )
 
         # Setup State
         from google.cloud.workflows import executions_v1 as exec_v1
@@ -457,7 +483,9 @@ class TestListExecutions:
         mock_pages.__next__.return_value = mock_page
         mock_response.pages = mock_pages
         mock_client.list_executions.return_value = mock_response
-        mock_client.workflow_path.return_value = "projects/p/locations/l/workflows/w"
+        mock_client.workflow_path.return_value = (
+            "projects/p/locations/l/workflows/w"
+        )
 
         result = workflow_service.list_executions(workflow_id="id-123")
 

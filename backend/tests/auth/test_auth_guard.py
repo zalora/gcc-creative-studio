@@ -40,7 +40,9 @@ class TestGetCurrentUser:
 
     @pytest.mark.anyio
     @patch("src.auth.auth_guard.auth.verify_id_token")
-    async def test_get_current_user_local_success(self, mock_verify, mock_user_service):
+    async def test_get_current_user_local_success(
+        self, mock_verify, mock_user_service
+    ):
         # Setup: Local environment
         config_service.ENVIRONMENT = "local"
         config_service.ALLOWED_ORGS_STR = ""
@@ -68,12 +70,16 @@ class TestGetCurrentUser:
 
     @pytest.mark.anyio
     @patch("src.auth.auth_guard.auth.verify_id_token")
-    async def test_get_current_user_no_email(self, mock_verify, mock_user_service):
+    async def test_get_current_user_no_email(
+        self, mock_verify, mock_user_service
+    ):
         config_service.ENVIRONMENT = "local"
         mock_verify.return_value = {"name": "Test User"}  # Missing email
 
         with pytest.raises(HTTPException) as exc_info:
-            await get_current_user(token="valid_token", user_service=mock_user_service)
+            await get_current_user(
+                token="valid_token", user_service=mock_user_service
+            )
 
         assert exc_info.value.status_code == 403
         assert "User identity could not be confirmed" in exc_info.value.detail
@@ -95,7 +101,9 @@ class TestGetCurrentUser:
         }
 
         with pytest.raises(HTTPException) as exc_info:
-            await get_current_user(token="valid_token", user_service=mock_user_service)
+            await get_current_user(
+                token="valid_token", user_service=mock_user_service
+            )
 
         assert exc_info.value.status_code == 401
         assert "not part of an allowed organization" in exc_info.value.detail

@@ -17,7 +17,10 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import HTTPException
 
-from src.workspaces.schema.workspace_model import WorkspaceModel, WorkspaceScopeEnum
+from src.workspaces.schema.workspace_model import (
+    WorkspaceModel,
+    WorkspaceScopeEnum,
+)
 from src.workspaces.workspace_auth_guard import WorkspaceAuth
 
 
@@ -57,7 +60,9 @@ class TestWorkspaceAuthAuthorize:
         mock_admin,
     ):
         # Private workspace, but user is ADMIN
-        mock_workspace_repo_auth.get_scope.return_value = WorkspaceScopeEnum.PRIVATE
+        mock_workspace_repo_auth.get_scope.return_value = (
+            WorkspaceScopeEnum.PRIVATE
+        )
 
         mock_workspace = WorkspaceModel(id=1, name="Private", owner_id=99)
         mock_workspace_repo_auth.get_by_id.return_value = mock_workspace
@@ -75,7 +80,9 @@ class TestWorkspaceAuthAuthorize:
         mock_user,
     ):
         # Public workspace, user is regular user
-        mock_workspace_repo_auth.get_scope.return_value = WorkspaceScopeEnum.PUBLIC
+        mock_workspace_repo_auth.get_scope.return_value = (
+            WorkspaceScopeEnum.PUBLIC
+        )
 
         mock_workspace = WorkspaceModel(id=1, name="Public", owner_id=99)
         mock_workspace_repo_auth.get_by_id.return_value = mock_workspace
@@ -93,7 +100,9 @@ class TestWorkspaceAuthAuthorize:
         mock_user,
     ):
         # Private workspace, user is regular user, but IS a member
-        mock_workspace_repo_auth.get_scope.return_value = WorkspaceScopeEnum.PRIVATE
+        mock_workspace_repo_auth.get_scope.return_value = (
+            WorkspaceScopeEnum.PRIVATE
+        )
         mock_workspace_repo_auth.is_member.return_value = True
 
         mock_workspace = WorkspaceModel(id=1, name="Private", owner_id=99)
@@ -102,7 +111,9 @@ class TestWorkspaceAuthAuthorize:
         result = await workspace_auth.authorize(1, mock_user)
 
         assert result == mock_workspace
-        mock_workspace_repo_auth.is_member.assert_called_once_with(1, mock_user.id)
+        mock_workspace_repo_auth.is_member.assert_called_once_with(
+            1, mock_user.id
+        )
 
     @pytest.mark.anyio
     async def test_authorize_private_not_member(
@@ -112,7 +123,9 @@ class TestWorkspaceAuthAuthorize:
         mock_user,
     ):
         # Private workspace, user is regular user, NOT a member
-        mock_workspace_repo_auth.get_scope.return_value = WorkspaceScopeEnum.PRIVATE
+        mock_workspace_repo_auth.get_scope.return_value = (
+            WorkspaceScopeEnum.PRIVATE
+        )
         mock_workspace_repo_auth.is_member.return_value = False
 
         with pytest.raises(HTTPException) as exc_info:
@@ -120,4 +133,6 @@ class TestWorkspaceAuthAuthorize:
 
         assert exc_info.value.status_code == 403
         assert "do not have permission" in exc_info.value.detail
-        mock_workspace_repo_auth.is_member.assert_called_once_with(1, mock_user.id)
+        mock_workspace_repo_auth.is_member.assert_called_once_with(
+            1, mock_user.id
+        )

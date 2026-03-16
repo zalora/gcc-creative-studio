@@ -38,7 +38,9 @@ class ReferenceImageDto(BaseDto):
     asset_id: int = Field(
         description="The ID of the SourceAsset to use as a reference.",
     )
-    reference_type: ReferenceImageTypeEnum = Field(default=ReferenceImageTypeEnum.ASSET)
+    reference_type: ReferenceImageTypeEnum = Field(
+        default=ReferenceImageTypeEnum.ASSET
+    )
 
 
 class CreateVeoDto(BaseDto):
@@ -67,7 +69,9 @@ class CreateVeoDto(BaseDto):
         le=4,
         description="Number of videos to generate (between 1 and 4).",
     )
-    style: StyleEnum | None = Field(default=None, description="Style of the image.")
+    style: StyleEnum | None = Field(
+        default=None, description="Style of the image."
+    )
     negative_prompt: str = Field(
         default="",
         description="Negative prompt for the image.",
@@ -183,7 +187,9 @@ class CreateVeoDto(BaseDto):
         return self
 
     @field_validator("aspect_ratio")
-    def validate_video_aspect_ratio(cls, value: AspectRatioEnum) -> AspectRatioEnum:
+    def validate_video_aspect_ratio(
+        cls, value: AspectRatioEnum
+    ) -> AspectRatioEnum:
         """Ensures that only supported aspect ratios for video are used."""
         valid_video_ratios = [
             AspectRatioEnum.RATIO_16_9,

@@ -83,7 +83,10 @@ async def get_current_user(
 
         # If ALLOWED_ORGS is configured, check the user's organization.
         if config_service.ALLOWED_ORGS:
-            if not token_info_hd or token_info_hd not in config_service.ALLOWED_ORGS:
+            if (
+                not token_info_hd
+                or token_info_hd not in config_service.ALLOWED_ORGS
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=f"User from '{token_info_hd}' is not part of an allowed organization.",
@@ -107,18 +110,24 @@ async def get_current_user(
             logger.info(f"Updating picture for user: {email}")
             user_doc.picture = picture
             if user_doc.id:
-                await user_service.user_repo.update(user_doc.id, {"picture": picture})
+                await user_service.user_repo.update(
+                    user_doc.id, {"picture": picture}
+                )
 
         return user_doc
 
     except auth.ExpiredIdTokenError:
-        logger.error(f"[get_current_user - auth.ExpiredIdTokenError] for {email}")
+        logger.error(
+            f"[get_current_user - auth.ExpiredIdTokenError] for {email}"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication token has expired.",
         )
     except auth.InvalidIdTokenError as e:
-        logger.error(f"[get_current_user - auth.InvalidIdTokenError] for {email}: {e}")
+        logger.error(
+            f"[get_current_user - auth.InvalidIdTokenError] for {email}: {e}"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication token: {e}",

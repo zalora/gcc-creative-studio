@@ -16,7 +16,11 @@ import datetime
 
 from pydantic import Field
 
-from src.common.base_dto import GenerationModelEnum, MimeTypeEnum, WildcardMimeTypeEnum
+from src.common.base_dto import (
+    GenerationModelEnum,
+    MimeTypeEnum,
+    WildcardMimeTypeEnum,
+)
 from src.common.dto.base_search_dto import BaseSearchDto
 from src.common.schema.media_item_model import JobStatusEnum
 

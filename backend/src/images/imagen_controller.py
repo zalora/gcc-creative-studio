@@ -13,7 +13,15 @@
 # limitations under the License.
 
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi import status as Status
 
 from src.auth.auth_guard import RoleChecker, get_current_user
@@ -32,7 +40,9 @@ from src.users.user_model import UserModel, UserRoleEnum
 from src.workspaces.workspace_auth_guard import WorkspaceAuth
 
 # Define role checkers for convenience
-user_only = Depends(RoleChecker(allowed_roles=[UserRoleEnum.USER, UserRoleEnum.ADMIN]))
+user_only = Depends(
+    RoleChecker(allowed_roles=[UserRoleEnum.USER, UserRoleEnum.ADMIN])
+)
 
 router = APIRouter(
     prefix="/api/images",

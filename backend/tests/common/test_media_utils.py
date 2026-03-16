@@ -51,7 +51,9 @@ def test_generate_image_thumbnail_bytes_error():
 def test_generate_image_thumbnail_from_gcs_success():
     mock_gcs = MagicMock()
     mock_gcs.download_bytes_from_gcs.return_value = b"fakeimage"
-    mock_gcs.upload_bytes_to_gcs.return_value = "gs://bucket/image_thumbnail.png"
+    mock_gcs.upload_bytes_to_gcs.return_value = (
+        "gs://bucket/image_thumbnail.png"
+    )
 
     with patch(
         "src.common.media_utils.generate_image_thumbnail_bytes",
@@ -100,9 +102,13 @@ def test_generate_thumbnail_video_empty():
 
 def test_concatenate_videos_success():
     with patch("src.common.media_utils.subprocess.run") as mock_run:
-        with patch("src.common.media_utils.open", create=True) as mock_file_open:
+        with patch(
+            "src.common.media_utils.open", create=True
+        ) as mock_file_open:
             mock_run.return_value.returncode = 0
-            res = concatenate_videos(["/tmp/v1.mp4", "/tmp/v2.mp4"], "/tmp/output.mp4")
+            res = concatenate_videos(
+                ["/tmp/v1.mp4", "/tmp/v2.mp4"], "/tmp/output.mp4"
+            )
             assert res == "/tmp/output.mp4"
             mock_run.assert_called_once()
 
@@ -114,7 +120,9 @@ def test_concatenate_videos_too_few():
 
 def test_get_video_dimensions_success():
     with patch("src.common.media_utils.subprocess.run") as mock_run:
-        mock_run.return_value.stdout = '{"streams": [{"width": 1920, "height": 1080}]}'
+        mock_run.return_value.stdout = (
+            '{"streams": [{"width": 1920, "height": 1080}]}'
+        )
 
         width, height = get_video_dimensions("/tmp/video.mp4")
 
@@ -144,22 +152,30 @@ def test_generate_thumbnail_called_process_error():
     with patch("src.common.media_utils.subprocess.run") as mock_run:
         import subprocess
 
-        mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", stderr="error")
+        mock_run.side_effect = subprocess.CalledProcessError(
+            1, "cmd", stderr="error"
+        )
         res = generate_thumbnail("/tmp/video.mp4")
         assert res is None
 
 
 def test_concatenate_videos_ffmpeg_not_found():
     with patch("src.common.media_utils.subprocess.run") as mock_run:
-        with patch("src.common.media_utils.open", create=True) as mock_file_open:
+        with patch(
+            "src.common.media_utils.open", create=True
+        ) as mock_file_open:
             mock_run.side_effect = FileNotFoundError()
-            res = concatenate_videos(["/tmp/v1.mp4", "/tmp/v2.mp4"], "/tmp/output.mp4")
+            res = concatenate_videos(
+                ["/tmp/v1.mp4", "/tmp/v2.mp4"], "/tmp/output.mp4"
+            )
             assert res is None
 
 
 def test_concatenate_videos_called_process_error():
     with patch("src.common.media_utils.subprocess.run") as mock_run:
-        with patch("src.common.media_utils.open", create=True) as mock_file_open:
+        with patch(
+            "src.common.media_utils.open", create=True
+        ) as mock_file_open:
             import subprocess
 
             mock_run.side_effect = subprocess.CalledProcessError(
@@ -167,5 +183,7 @@ def test_concatenate_videos_called_process_error():
                 "cmd",
                 stderr="error",
             )
-            res = concatenate_videos(["/tmp/v1.mp4", "/tmp/v2.mp4"], "/tmp/output.mp4")
+            res = concatenate_videos(
+                ["/tmp/v1.mp4", "/tmp/v2.mp4"], "/tmp/output.mp4"
+            )
             assert res is None

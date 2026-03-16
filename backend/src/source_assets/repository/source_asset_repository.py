@@ -73,7 +73,9 @@ class SourceAssetRepository(BaseRepository[SourceAsset, SourceAssetModel]):
                 query = query.where(self.model.mime_type.like("audio/%"))
             else:
                 # Exact match for specific mime types like "image/png"
-                query = query.where(self.model.mime_type == search_dto.mime_type)
+                query = query.where(
+                    self.model.mime_type == search_dto.mime_type
+                )
 
         if target_user_id:
             query = query.where(self.model.user_id == target_user_id)
@@ -82,12 +84,16 @@ class SourceAssetRepository(BaseRepository[SourceAsset, SourceAssetModel]):
             query = query.where(self.model.scope == search_dto.scope.value)
 
         if search_dto.asset_type:
-            query = query.where(self.model.asset_type == search_dto.asset_type.value)
+            query = query.where(
+                self.model.asset_type == search_dto.asset_type.value
+            )
 
         if search_dto.original_filename:
             # Prefix search
             query = query.where(
-                self.model.original_filename.like(f"{search_dto.original_filename}%"),
+                self.model.original_filename.like(
+                    f"{search_dto.original_filename}%"
+                ),
             )
 
         # Count

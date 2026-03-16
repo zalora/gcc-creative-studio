@@ -53,7 +53,9 @@ class UserRepository(BaseRepository[User, UserModel]):
             query = query.where(self.model.email.ilike(f"%{search_dto.email}%"))
 
         if search_dto.role:
-            query = query.where(self.model.roles.contains([search_dto.role.value]))
+            query = query.where(
+                self.model.roles.contains([search_dto.role.value])
+            )
 
         if not search_dto.include_deleted:
             query = query.where(self.model.deleted_at.is_(None))

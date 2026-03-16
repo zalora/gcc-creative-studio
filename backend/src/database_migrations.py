@@ -82,7 +82,9 @@ async def run_pending_migrations():
                 logger.info("Migrations applied successfully.")
                 logger.info(f"Alembic Output:\n{full_output.strip()}")
             else:
-                logger.info("Database is already up to date. No pending migrations.")
+                logger.info(
+                    "Database is already up to date. No pending migrations."
+                )
                 # We can still log the output at debug level if needed, or just skip it to reduce noise
                 logger.debug(f"Alembic Output:\n{full_output.strip()}")
         else:
@@ -102,7 +104,9 @@ async def run_pending_migrations():
             try:
                 # Release advisory lock
                 logger.info("Releasing advisory lock...")
-                await conn.execute("SELECT pg_advisory_unlock($1)", MIGRATION_LOCK_ID)
+                await conn.execute(
+                    "SELECT pg_advisory_unlock($1)", MIGRATION_LOCK_ID
+                )
                 logger.info("Advisory lock released.")
                 await conn.close()
             except Exception as e:

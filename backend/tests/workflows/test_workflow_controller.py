@@ -26,7 +26,9 @@ from src.workflows.workflow_service import WorkflowService
 
 @pytest.fixture
 def mock_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.fixture

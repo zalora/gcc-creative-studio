@@ -41,7 +41,9 @@ class IamSignerCredentials(credentials.Signing):
         # 1. Create the custom credentials object for signing.
         self.service_account_email = getenv("SIGNING_SA_EMAIL", "")
         self.iam_client = iam_credentials_v1.IAMCredentialsClient()
-        self._sa_path = f"projects/-/serviceAccounts/{self.service_account_email}"
+        self._sa_path = (
+            f"projects/-/serviceAccounts/{self.service_account_email}"
+        )
 
     def _get_cached_url(
         self,
@@ -54,7 +56,9 @@ class IamSignerCredentials(credentials.Signing):
         if cache_key in self._url_cache:
             url, expiry = self._url_cache[cache_key]
             # Add a 5-minute buffer before actual expiration
-            if datetime.datetime.now() < (expiry - datetime.timedelta(minutes=5)):
+            if datetime.datetime.now() < (
+                expiry - datetime.timedelta(minutes=5)
+            ):
                 return url
             del self._url_cache[cache_key]
         return None
@@ -68,7 +72,9 @@ class IamSignerCredentials(credentials.Signing):
     ):
         """Caches a newly generated URL."""
         cache_key = (gcs_uri, expiration_hours, method)
-        expiry = datetime.datetime.now() + datetime.timedelta(hours=expiration_hours)
+        expiry = datetime.datetime.now() + datetime.timedelta(
+            hours=expiration_hours
+        )
         self._url_cache[cache_key] = (url, expiry)
 
     def generate_presigned_url(
@@ -111,7 +117,9 @@ class IamSignerCredentials(credentials.Signing):
             blob = bucket.blob(blob_name)
 
             # 3. Generate the signed URL, passing the custom credentials.
-            logger.info(f"Generating presigned URL for {gcs_uri} (not in cache)")
+            logger.info(
+                f"Generating presigned URL for {gcs_uri} (not in cache)"
+            )
             url = blob.generate_signed_url(
                 version="v4",
                 expiration=datetime.timedelta(hours=expiration_hours),
@@ -154,7 +162,9 @@ class IamSignerCredentials(credentials.Signing):
 
         """
         if not self.service_account_email:
-            logger.error("SIGNING_SA_EMAIL is not set. Cannot generate upload URL.")
+            logger.error(
+                "SIGNING_SA_EMAIL is not set. Cannot generate upload URL."
+            )
             return None, None
 
         try:
@@ -172,7 +182,9 @@ class IamSignerCredentials(credentials.Signing):
             gcs_uri = f"gs://{bucket_name}/{destination_blob_name}"
             return url, gcs_uri
         except Exception as e:
-            logger.error(f"Failed to generate v4 upload signed URL: {e}", exc_info=True)
+            logger.error(
+                f"Failed to generate v4 upload signed URL: {e}", exc_info=True
+            )
             return None, None
 
     @property

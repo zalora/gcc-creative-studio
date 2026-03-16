@@ -110,7 +110,9 @@ async def get_workflow(
     workflow_service: WorkflowService = Depends(),
 ):
     try:
-        workflow = await workflow_service.get_workflow(current_user.id, workflow_id)
+        workflow = await workflow_service.get_workflow(
+            current_user.id, workflow_id
+        )
         if workflow:
             return workflow
         return Response(status_code=status.HTTP_404_NOT_FOUND)
@@ -166,7 +168,9 @@ async def execute_workflow(
     return {"execution_id": response}
 
 
-@router.post("/{workflow_id}/batch-execute", response_model=BatchExecutionResponseDto)
+@router.post(
+    "/{workflow_id}/batch-execute", response_model=BatchExecutionResponseDto
+)
 async def batch_execute_workflow(
     workflow_id: str,
     batch_dto: BatchExecutionRequestDto,
@@ -201,7 +205,9 @@ async def get_execution(
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
-    execution = await workflow_service.get_execution_details(workflow_id, execution_id)
+    execution = await workflow_service.get_execution_details(
+        workflow_id, execution_id
+    )
     if not execution:
         raise HTTPException(status_code=404, detail="Execution not found")
 

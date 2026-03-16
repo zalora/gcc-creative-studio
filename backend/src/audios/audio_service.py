@@ -31,7 +31,11 @@ from google.protobuf import json_format, struct_pb2
 from src.audios.audio_constants import LanguageEnum, VoiceEnum
 from src.audios.dto.create_audio_dto import CreateAudioDto
 from src.auth.iam_signer_credentials_service import IamSignerCredentials
-from src.common.base_dto import AspectRatioEnum, GenerationModelEnum, MimeTypeEnum
+from src.common.base_dto import (
+    AspectRatioEnum,
+    GenerationModelEnum,
+    MimeTypeEnum,
+)
 from src.common.schema.genai_model_setup import GenAIModelSetup
 from src.common.schema.media_item_model import JobStatusEnum, MediaItemModel
 from src.common.storage_service import GcsService
@@ -143,7 +147,9 @@ class AudioService:
                     or not response.candidates[0].content
                     or not response.candidates[0].content.parts
                 ):
-                    logger.warning(f"Gemini attempt {index} returned no content.")
+                    logger.warning(
+                        f"Gemini attempt {index} returned no content."
+                    )
                     return None
 
                 part = response.candidates[0].content.parts[0]
@@ -155,7 +161,9 @@ class AudioService:
                     if isinstance(pcm_bytes, str):
                         pcm_bytes = base64.b64decode(pcm_bytes)
                 else:
-                    logger.warning(f"Gemini attempt {index} had no inline data.")
+                    logger.warning(
+                        f"Gemini attempt {index} had no inline data."
+                    )
                     return None
 
                 if not pcm_bytes:
@@ -187,7 +195,9 @@ class AudioService:
                 return None
 
         # --- PARALLEL EXECUTION ---
-        tasks = [generate_single_sample(i) for i in range(request_dto.sample_count)]
+        tasks = [
+            generate_single_sample(i) for i in range(request_dto.sample_count)
+        ]
         results = await asyncio.gather(*tasks)
         permanent_gcs_uris = [uri for uri in results if uri is not None]
 
@@ -215,7 +225,9 @@ class AudioService:
         # Define the single generation task
         async def generate_single_sample(index: int) -> str | None:
             try:
-                synthesis_input = texttospeech.SynthesisInput(text=request_dto.prompt)
+                synthesis_input = texttospeech.SynthesisInput(
+                    text=request_dto.prompt
+                )
 
                 # Construct the full voice name string if using Chirp 3
                 # Example: "en-US" + "Chirp3-HD" + "Puck" -> "en-US-Chirp3-HD-Fenrir"
@@ -272,12 +284,16 @@ class AudioService:
                 return None
 
         # --- PARALLEL EXECUTION ---
-        tasks = [generate_single_sample(i) for i in range(request_dto.sample_count)]
+        tasks = [
+            generate_single_sample(i) for i in range(request_dto.sample_count)
+        ]
         results = await asyncio.gather(*tasks)
         permanent_gcs_uris = [uri for uri in results if uri is not None]
 
         if not permanent_gcs_uris:
-            raise ValueError("Failed to generate any Standard TTS audio samples.")
+            raise ValueError(
+                "Failed to generate any Standard TTS audio samples."
+            )
 
         return await self._finalize_response(
             user,
@@ -299,8 +315,12 @@ class AudioService:
 
         # Force us-central1 for Lyria client
         lyria_location = "us-central1"
-        client_options = {"api_endpoint": f"{lyria_location}-aiplatform.googleapis.com"}
-        client = aiplatform.gapic.PredictionServiceClient(client_options=client_options)
+        client_options = {
+            "api_endpoint": f"{lyria_location}-aiplatform.googleapis.com"
+        }
+        client = aiplatform.gapic.PredictionServiceClient(
+            client_options=client_options
+        )
 
         # Define the single generation task
         async def generate_single_sample(index: int) -> str | None:
@@ -313,7 +333,9 @@ class AudioService:
                 # 2. Prepare Instance
                 instance_dict: dict[str, Any] = {"prompt": request_dto.prompt}
                 if request_dto.negative_prompt:
-                    instance_dict["negative_prompt"] = request_dto.negative_prompt
+                    instance_dict["negative_prompt"] = (
+                        request_dto.negative_prompt
+                    )
                 # Pass seed if provided, otherwise let API randomize
                 if request_dto.seed:
                     instance_dict["seed"] = request_dto.seed
@@ -345,9 +367,7 @@ class AudioService:
                 audio_bytes = base64.b64decode(audio_b64)
 
                 # Unique filename per sample
-                file_name = (
-                    f"lyria_music_{int(time.time())}_{str(user.id)[:4]}_{index}.wav"
-                )
+                file_name = f"lyria_music_{int(time.time())}_{str(user.id)[:4]}_{index}.wav"
 
                 # 5. Save to GCS
                 gcs_uri = self.gcs_service.store_to_gcs(
@@ -368,7 +388,9 @@ class AudioService:
 
         # --- PARALLEL EXECUTION ---
         # Create a task for each requested sample
-        tasks = [generate_single_sample(i) for i in range(request_dto.sample_count)]
+        tasks = [
+            generate_single_sample(i) for i in range(request_dto.sample_count)
+        ]
 
         # Run all tasks concurrently
         results = await asyncio.gather(*tasks)
@@ -400,7 +422,9 @@ class AudioService:
             raise ValueError("No audio content generated.")
 
         presigned_url_tasks = [
-            asyncio.to_thread(self.iam_signer_credentials.generate_presigned_url, uri)
+            asyncio.to_thread(
+                self.iam_signer_credentials.generate_presigned_url, uri
+            )
             for uri in gcs_uris
         ]
         presigned_urls = await asyncio.gather(*presigned_url_tasks)

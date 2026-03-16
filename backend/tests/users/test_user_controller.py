@@ -118,7 +118,9 @@ class TestDeleteUser:
     def test_delete_user_admin_success(self, admin_client, mock_user_service):
         mock_user_service.delete_user.return_value = True
 
-        response = admin_client.delete("/api/users/1")  # Delete ID 1 (Admin is 2)
+        response = admin_client.delete(
+            "/api/users/1"
+        )  # Delete ID 1 (Admin is 2)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         mock_user_service.delete_user.assert_called_once()

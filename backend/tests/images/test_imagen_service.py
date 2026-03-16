@@ -88,7 +88,9 @@ def imagen_service(
 
 @pytest.fixture
 def sample_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.fixture
@@ -156,7 +158,9 @@ class TestImagenServiceMethods:
             image_preservation_factor=1.0,
         )
 
-        with patch("src.images.imagen_service.GenAIModelSetup.init") as mock_init:
+        with patch(
+            "src.images.imagen_service.GenAIModelSetup.init"
+        ) as mock_init:
             mock_client = MagicMock()
             mock_init.return_value = mock_client
 
@@ -181,7 +185,9 @@ class TestImagenServiceMethods:
             user_image="gs://bucket/input.png",
             upscale_factor="x4",
         )
-        with patch("src.images.imagen_service.GenAIModelSetup.init") as mock_init:
+        with patch(
+            "src.images.imagen_service.GenAIModelSetup.init"
+        ) as mock_init:
             mock_client = MagicMock()
             mock_init.return_value = mock_client
             mock_response = MagicMock()
@@ -192,7 +198,9 @@ class TestImagenServiceMethods:
 
             mock_client.models.upscale_image.return_value = mock_response
 
-            with pytest.raises(ValueError, match="Image upscaling filtered by RAI"):
+            with pytest.raises(
+                ValueError, match="Image upscaling filtered by RAI"
+            ):
                 await imagen_service.upscale_image(request_dto)
 
     @pytest.mark.anyio
@@ -203,7 +211,9 @@ class TestImagenServiceMethods:
             user_image="gs://bucket/input.png",
             upscale_factor="x4",
         )
-        with patch("src.images.imagen_service.GenAIModelSetup.init") as mock_init:
+        with patch(
+            "src.images.imagen_service.GenAIModelSetup.init"
+        ) as mock_init:
             mock_client = MagicMock()
             mock_init.return_value = mock_client
             mock_response = MagicMock()
@@ -269,7 +279,9 @@ class TestImagenServiceMethods:
         asset.id = 101
         asset.gcs_uri = "gs://bucket/large.png"
         mock_source_asset_repo.get_by_id.return_value = asset
-        mock_gcs_service.download_bytes_from_gcs.return_value = b"fake_image_bytes"
+        mock_gcs_service.download_bytes_from_gcs.return_value = (
+            b"fake_image_bytes"
+        )
 
         with patch("PIL.Image.open") as mock_pil_open:
             mock_pil = MagicMock()
@@ -322,7 +334,9 @@ class TestImagenServiceMethods:
         )
         mock_media_repo.create.return_value = placeholder
         mock_executor = MagicMock()
-        mock_gcs_service.download_bytes_from_gcs.return_value = None  # Skip PIL open
+        mock_gcs_service.download_bytes_from_gcs.return_value = (
+            None  # Skip PIL open
+        )
 
         # Call
         response = await imagen_service.start_upload_upscale_job(
@@ -406,7 +420,9 @@ class TestImagenServiceMethods:
         )
 
         # Call
-        response = await imagen_service.get_media_item_with_presigned_urls(media_id=111)
+        response = await imagen_service.get_media_item_with_presigned_urls(
+            media_id=111
+        )
 
         assert response is not None
         assert response.id == 111
@@ -467,7 +483,9 @@ def test_process_image_in_background_sync(
         mock_media_repo_class.return_value = mock_media_repo
 
         mock_gemini_service = AsyncMock()
-        mock_gemini_service.enhance_prompt_from_dto.return_value = "Enhanced Prompt"
+        mock_gemini_service.enhance_prompt_from_dto.return_value = (
+            "Enhanced Prompt"
+        )
         mock_gemini_service_class.return_value = mock_gemini_service
 
         mock_gcs = AsyncMock()
@@ -517,7 +535,9 @@ def test_process_image_in_background_sync_gemini_model(
     mock_client = MagicMock()
     mock_genai_init.return_value = mock_client
 
-    with patch("src.images.imagen_service.gemini_generate_image") as mock_gemini_gen:
+    with patch(
+        "src.images.imagen_service.gemini_generate_image"
+    ) as mock_gemini_gen:
         mock_result = MagicMock()
         mock_result.image.gcs_uri = "gs://bucket/output_gemini.png"
         mock_gemini_gen.return_value = (mock_result, None)
@@ -537,7 +557,9 @@ def test_process_image_in_background_sync_gemini_model(
             mock_media_repo_class.return_value = mock_media_repo
 
             mock_gemini_service = AsyncMock()
-            mock_gemini_service.enhance_prompt_from_dto.return_value = "Enhanced Prompt"
+            mock_gemini_service.enhance_prompt_from_dto.return_value = (
+                "Enhanced Prompt"
+            )
             mock_gemini_service_class.return_value = mock_gemini_service
 
             mock_gcs = AsyncMock()
@@ -602,7 +624,9 @@ def test_process_image_in_background_sync_with_upscale(
         mock_media_repo_class.return_value = mock_media_repo
 
         mock_gemini_service = AsyncMock()
-        mock_gemini_service.enhance_prompt_from_dto.return_value = "Enhanced Prompt"
+        mock_gemini_service.enhance_prompt_from_dto.return_value = (
+            "Enhanced Prompt"
+        )
         mock_gemini_service_class.return_value = mock_gemini_service
 
         mock_gcs = AsyncMock()
@@ -646,7 +670,9 @@ def test_process_image_in_background_sync_gemini_image_to_image(
         GenerationModelEnum.GEMINI_3_PRO_IMAGE_PREVIEW
     )
     sample_create_imagen_dto.source_media_items = [
-        SourceMediaItemLink(media_item_id=999, media_index=0, role=AssetRoleEnum.INPUT),
+        SourceMediaItemLink(
+            media_item_id=999, media_index=0, role=AssetRoleEnum.INPUT
+        ),
     ]
 
     # Worker database mocks
@@ -657,7 +683,9 @@ def test_process_image_in_background_sync_gemini_image_to_image(
     mock_client = MagicMock()
     mock_genai_init.return_value = mock_client
 
-    with patch("src.images.imagen_service.gemini_generate_image") as mock_gemini_gen:
+    with patch(
+        "src.images.imagen_service.gemini_generate_image"
+    ) as mock_gemini_gen:
         mock_result = MagicMock()
         mock_result.image.gcs_uri = "gs://bucket/output_gemini_i2i.png"
         mock_gemini_gen.return_value = (mock_result, None)
@@ -984,7 +1012,9 @@ def test_process_vto_in_background_sync_media_item(
     sample_vto_dto = VtoDto(
         workspace_id=1,
         person_image=VtoInputLink(
-            source_media_item=VtoSourceMediaItemLink(media_item_id=111, media_index=0),
+            source_media_item=VtoSourceMediaItemLink(
+                media_item_id=111, media_index=0
+            ),
         ),
         top_image=VtoInputLink(source_asset_id=102),
     )
@@ -1095,7 +1125,9 @@ def test_process_image_in_background_sync_edit_image(
         mock_media_repo_class.return_value = mock_media_repo
 
         mock_gemini_service = AsyncMock()
-        mock_gemini_service.enhance_prompt_from_dto.return_value = "Enhanced Prompt"
+        mock_gemini_service.enhance_prompt_from_dto.return_value = (
+            "Enhanced Prompt"
+        )
         mock_gemini_service_class.return_value = mock_gemini_service
 
         mock_sa_repo = AsyncMock()
@@ -1199,7 +1231,9 @@ def test_upscale_imagen_dto_validation_failures():
 
     # 2. Invalid mime type
     with pytest.raises(ValidationError) as exc_info:
-        UpscaleImagenDto(user_image="base64str", mime_type=MimeTypeEnum.AUDIO_WAV)
+        UpscaleImagenDto(
+            user_image="base64str", mime_type=MimeTypeEnum.AUDIO_WAV
+        )
     assert "Invalid mime type" in str(exc_info.value)
 
 

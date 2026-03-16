@@ -20,7 +20,9 @@ from httpx import Response
 
 from src.common.schema.media_item_model import AssetRoleEnum
 from src.workflows.schema.workflow_model import ReferenceMediaOrAsset
-from src.workflows_executor.workflows_executor_service import WorkflowsExecutorService
+from src.workflows_executor.workflows_executor_service import (
+    WorkflowsExecutorService,
+)
 
 
 @pytest.fixture
@@ -204,7 +206,9 @@ async def test_generate_text_stream(service):
     assert result["generated_text"] == "Hello World!"
     # Verify client call
     service.mock_genai_client.models.generate_content_stream.assert_called_once()
-    args, kwargs = service.mock_genai_client.models.generate_content_stream.call_args
+    args, kwargs = (
+        service.mock_genai_client.models.generate_content_stream.call_args
+    )
     assert kwargs["model"] == "gemini-1.5-pro"
     # Prompt is wrapped as Part.from_text inside contents
     assert len(kwargs["contents"]) == 1

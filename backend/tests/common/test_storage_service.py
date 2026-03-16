@@ -43,7 +43,9 @@ def test_download_from_gcs_success(gcs_service):
 
 def test_download_from_gcs_not_found(gcs_service):
     mock_blob = MagicMock()
-    mock_blob.download_to_filename.side_effect = exceptions.NotFound("Not found")
+    mock_blob.download_to_filename.side_effect = exceptions.NotFound(
+        "Not found"
+    )
     gcs_service.bucket.blob.return_value = mock_blob
 
     with patch("src.common.storage_service.os.makedirs"):
@@ -106,7 +108,9 @@ def test_upload_file_to_gcs_success(gcs_service):
 
 def test_upload_file_to_gcs_not_found(gcs_service):
     mock_blob = MagicMock()
-    mock_blob.upload_from_filename.side_effect = exceptions.NotFound("Not found")
+    mock_blob.upload_from_filename.side_effect = exceptions.NotFound(
+        "Not found"
+    )
     gcs_service.bucket.blob.return_value = mock_blob
 
     with patch("src.common.storage_service.pathlib.Path") as mock_path:
@@ -150,7 +154,9 @@ def test_delete_blob_from_uri_invalid_bucket(gcs_service):
 
 def test_upload_file_to_gcs_no_bucket(gcs_service):
     gcs_service.bucket_name = None
-    res = gcs_service.upload_file_to_gcs("/tmp/local.txt", "remote.txt", "text/plain")
+    res = gcs_service.upload_file_to_gcs(
+        "/tmp/local.txt", "remote.txt", "text/plain"
+    )
     assert res is None
 
 
@@ -158,7 +164,9 @@ def test_upload_file_to_gcs_file_not_found_raise(gcs_service):
     with patch("src.common.storage_service.pathlib.Path") as mock_path:
         mock_path.return_value.is_file.return_value = False
         with pytest.raises(FileNotFoundError):
-            gcs_service.upload_file_to_gcs("/tmp/local.txt", "remote.txt", "text/plain")
+            gcs_service.upload_file_to_gcs(
+                "/tmp/local.txt", "remote.txt", "text/plain"
+            )
 
 
 def test_upload_file_to_gcs_api_error(gcs_service):
@@ -180,7 +188,9 @@ def test_upload_file_to_gcs_api_error(gcs_service):
 
 def test_upload_bytes_to_gcs_api_error(gcs_service):
     mock_blob = MagicMock()
-    mock_blob.upload_from_string.side_effect = exceptions.GoogleAPICallError("Error")
+    mock_blob.upload_from_string.side_effect = exceptions.GoogleAPICallError(
+        "Error"
+    )
     gcs_service.bucket.blob.return_value = mock_blob
 
     res = gcs_service.upload_bytes_to_gcs(b"hello", "remote.txt", "text/plain")

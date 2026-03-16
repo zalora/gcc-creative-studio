@@ -72,7 +72,9 @@ class UserService:
         """Retrieves a paginated list of all users."""
         return await self.user_repo.query(search_dto)
 
-    async def delete_user(self, user_id: int, deleted_by: int | None = None) -> bool:
+    async def delete_user(
+        self, user_id: int, deleted_by: int | None = None
+    ) -> bool:
         """Soft deletes a user."""
         return await self.user_repo.soft_delete(user_id, deleted_by=deleted_by)
 

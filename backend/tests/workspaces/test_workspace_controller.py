@@ -53,7 +53,9 @@ class TestCreateWorkspace:
         )
         mock_workspace_service.create_workspace.return_value = mock_workspace
 
-        response = api_client.post("/api/workspaces", json={"name": "My Workspace"})
+        response = api_client.post(
+            "/api/workspaces", json={"name": "My Workspace"}
+        )
 
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
@@ -71,7 +73,9 @@ class TestListMyWorkspaces:
         mock_user,
     ):
         workspace = WorkspaceModel(id=1, name="Work 1", owner_id=mock_user.id)
-        mock_workspace_service.list_workspaces_for_user.return_value = [workspace]
+        mock_workspace_service.list_workspaces_for_user.return_value = [
+            workspace
+        ]
 
         response = api_client.get("/api/workspaces")
 
@@ -84,7 +88,9 @@ class TestListMyWorkspaces:
 class TestInviteUser:
     """Tests for POST /api/workspaces/{id}/invites."""
 
-    def test_invite_user_success(self, api_client, mock_workspace_service, mock_user):
+    def test_invite_user_success(
+        self, api_client, mock_workspace_service, mock_user
+    ):
         workspace = WorkspaceModel(id=1, name="Work 1", owner_id=mock_user.id)
         mock_workspace_service.invite_user_to_workspace.return_value = workspace
 
@@ -106,4 +112,6 @@ class TestInviteUser:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert "Workspace or user to invite not found" in response.json()["detail"]
+        assert (
+            "Workspace or user to invite not found" in response.json()["detail"]
+        )

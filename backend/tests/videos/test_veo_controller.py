@@ -29,7 +29,9 @@ from src.workspaces.workspace_auth_guard import WorkspaceAuth
 
 @pytest.fixture
 def mock_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.fixture
@@ -98,7 +100,9 @@ def test_generate_videos_success(client, mock_veo_service, mock_workspace_auth):
     mock_veo_service.start_video_generation_job.assert_called_once()
 
 
-def test_concatenate_videos_success(client, mock_veo_service, mock_workspace_auth):
+def test_concatenate_videos_success(
+    client, mock_veo_service, mock_workspace_auth
+):
     # Setup
     mock_response = MediaItemResponse(
         id=456,
@@ -120,7 +124,10 @@ def test_concatenate_videos_success(client, mock_veo_service, mock_workspace_aut
     payload = {
         "name": "Concatenated Video",
         "workspace_id": 1,
-        "inputs": [{"type": "media_item", "id": 1}, {"type": "media_item", "id": 2}],
+        "inputs": [
+            {"type": "media_item", "id": 1},
+            {"type": "media_item", "id": 2},
+        ],
         "aspect_ratio": "16:9",
     }
 

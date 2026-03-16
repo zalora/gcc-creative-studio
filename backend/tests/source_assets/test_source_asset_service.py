@@ -60,7 +60,9 @@ def service(mock_dependencies):
 
 @pytest.fixture
 def sample_user():
-    return UserModel(id=1, email="test@example.com", name="Test User", roles=["user"])
+    return UserModel(
+        id=1, email="test@example.com", name="Test User", roles=["user"]
+    )
 
 
 @pytest.mark.anyio
@@ -98,10 +100,14 @@ async def test_get_and_validate_aspect_ratio_image_provided_invalid(service):
 
 
 @pytest.mark.anyio
-async def test_upload_asset_success_image(service, mock_dependencies, sample_user):
+async def test_upload_asset_success_image(
+    service, mock_dependencies, sample_user
+):
     # Setup Mocks
     mock_dependencies["repo"].find_by_hash.return_value = None  # No duplicate
-    mock_dependencies["gcs_service"].store_to_gcs.return_value = "gs://bucket/asset.png"
+    mock_dependencies["gcs_service"].store_to_gcs.return_value = (
+        "gs://bucket/asset.png"
+    )
     mock_dependencies["iam_signer"].generate_presigned_url.return_value = (
         "https://signed.url"
     )
@@ -163,7 +169,9 @@ async def test_upload_asset_duplicate(service, mock_dependencies, sample_user):
 
     assert response.id == 5
     mock_dependencies["repo"].create.assert_not_called()  # Did not save new
-    mock_dependencies["gcs_service"].store_to_gcs.assert_not_called()  # Did not upload
+    mock_dependencies[
+        "gcs_service"
+    ].store_to_gcs.assert_not_called()  # Did not upload
 
 
 @pytest.mark.anyio
@@ -184,7 +192,9 @@ async def test_delete_asset(service, mock_dependencies):
     result = await service.delete_asset(asset_id=1, current_user_id=2)
 
     assert result is True
-    mock_dependencies["repo"].soft_delete.assert_called_once_with(1, deleted_by=2)
+    mock_dependencies["repo"].soft_delete.assert_called_once_with(
+        1, deleted_by=2
+    )
 
 
 @pytest.mark.anyio
@@ -243,9 +253,13 @@ async def test_upload_asset_video(
 
 
 @pytest.mark.anyio
-async def test_upload_asset_with_upscale(service, mock_dependencies, sample_user):
+async def test_upload_asset_with_upscale(
+    service, mock_dependencies, sample_user
+):
     mock_dependencies["repo"].find_by_hash.return_value = None
-    mock_dependencies["gcs_service"].store_to_gcs.return_value = "gs://bucket/orig.png"
+    mock_dependencies["gcs_service"].store_to_gcs.return_value = (
+        "gs://bucket/orig.png"
+    )
     mock_dependencies["iam_signer"].generate_presigned_url.return_value = (
         "https://signed.url"
     )
@@ -253,7 +267,9 @@ async def test_upload_asset_with_upscale(service, mock_dependencies, sample_user
     # Mock Upscale Result
     mock_upscaled = MagicMock()
     mock_upscaled.image.gcs_uri = "gs://bucket/upscaled.png"
-    mock_dependencies["imagen_service"].upscale_image.return_value = mock_upscaled
+    mock_dependencies["imagen_service"].upscale_image.return_value = (
+        mock_upscaled
+    )
 
     saved_asset = SourceAssetModel(
         id=30,
@@ -305,7 +321,9 @@ async def test_get_all_vto_assets(service, mock_dependencies, sample_user):
         asset_type=AssetTypeEnum.VTO_PERSON_FEMALE,
     )
 
-    mock_dependencies["repo"].find_system_and_private_assets_by_types.return_value = [
+    mock_dependencies[
+        "repo"
+    ].find_system_and_private_assets_by_types.return_value = [
         mock_asset1,
         mock_asset2,
     ]
@@ -363,13 +381,17 @@ async def test_get_asset_by_id_authorized_owner(
 
 
 @pytest.mark.anyio
-async def test_create_from_gcs_uri_success(service, mock_dependencies, sample_user):
+async def test_create_from_gcs_uri_success(
+    service, mock_dependencies, sample_user
+):
     # Mock download_bytes_from_gcs returning real image bytes
     mock_dependencies["gcs_service"].download_bytes_from_gcs.return_value = (
         get_dummy_image_bytes()
     )
     mock_dependencies["repo"].find_by_hash.return_value = None
-    mock_dependencies["gcs_service"].store_to_gcs.return_value = "gs://bucket/out.png"
+    mock_dependencies["gcs_service"].store_to_gcs.return_value = (
+        "gs://bucket/out.png"
+    )
     mock_dependencies["iam_signer"].generate_presigned_url.return_value = (
         "https://signed.url"
     )
@@ -392,7 +414,9 @@ async def test_create_from_gcs_uri_success(service, mock_dependencies, sample_us
     )
 
     assert response.id == 50
-    mock_dependencies["gcs_service"].download_bytes_from_gcs.assert_called_once_with(
+    mock_dependencies[
+        "gcs_service"
+    ].download_bytes_from_gcs.assert_called_once_with(
         "gs://input/in.png",
     )
     mock_dependencies["gcs_service"].store_to_gcs.assert_called_once()
@@ -443,7 +467,9 @@ async def test_create_from_gcs_uri_video(
         )
 
     assert response.id == 55
-    mock_dependencies["gcs_service"].download_bytes_from_gcs.assert_called_once_with(
+    mock_dependencies[
+        "gcs_service"
+    ].download_bytes_from_gcs.assert_called_once_with(
         "gs://input/in.mp4",
     )
     assert mock_dependencies["gcs_service"].upload_file_to_gcs.call_count >= 1
@@ -457,7 +483,9 @@ async def test_upload_asset_non_png(service, mock_dependencies, sample_user):
     from PIL import Image
 
     mock_dependencies["repo"].find_by_hash.return_value = None
-    mock_dependencies["gcs_service"].store_to_gcs.return_value = "gs://bucket/asset.png"
+    mock_dependencies["gcs_service"].store_to_gcs.return_value = (
+        "gs://bucket/asset.png"
+    )
     mock_dependencies["iam_signer"].generate_presigned_url.return_value = (
         "https://signed.url"
     )
@@ -494,7 +522,9 @@ async def test_upload_asset_non_png(service, mock_dependencies, sample_user):
 @pytest.mark.anyio
 async def test_upload_asset_audio(service, mock_dependencies, sample_user):
     mock_dependencies["repo"].find_by_hash.return_value = None
-    mock_dependencies["gcs_service"].store_to_gcs.return_value = "gs://bucket/audio.mp3"
+    mock_dependencies["gcs_service"].store_to_gcs.return_value = (
+        "gs://bucket/audio.mp3"
+    )
     mock_dependencies["iam_signer"].generate_presigned_url.return_value = (
         "https://signed.url"
     )
@@ -525,9 +555,13 @@ async def test_upload_asset_audio(service, mock_dependencies, sample_user):
 
 
 @pytest.mark.anyio
-async def test_upload_asset_upscale_failure(service, mock_dependencies, sample_user):
+async def test_upload_asset_upscale_failure(
+    service, mock_dependencies, sample_user
+):
     mock_dependencies["repo"].find_by_hash.return_value = None
-    mock_dependencies["gcs_service"].store_to_gcs.return_value = "gs://bucket/asset.png"
+    mock_dependencies["gcs_service"].store_to_gcs.return_value = (
+        "gs://bucket/asset.png"
+    )
     mock_dependencies["imagen_service"].upscale_image.side_effect = Exception(
         "Upscale failed",
     )
@@ -547,7 +581,9 @@ async def test_upload_asset_upscale_failure(service, mock_dependencies, sample_u
 
     mock_dependencies["repo"].create.return_value = saved_asset
 
-    from tests.source_assets.test_source_asset_service import get_dummy_image_bytes
+    from tests.source_assets.test_source_asset_service import (
+        get_dummy_image_bytes,
+    )
 
     contents = get_dummy_image_bytes()
 

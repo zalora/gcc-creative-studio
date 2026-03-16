@@ -27,7 +27,9 @@ from src.users.user_model import UserModel, UserRoleEnum
 
 # Define role checkers for convenience
 admin_only = Depends(RoleChecker(allowed_roles=[UserRoleEnum.ADMIN]))
-any_user = Depends(RoleChecker(allowed_roles=[UserRoleEnum.ADMIN, UserRoleEnum.USER]))
+any_user = Depends(
+    RoleChecker(allowed_roles=[UserRoleEnum.ADMIN, UserRoleEnum.USER])
+)
 
 router = APIRouter(
     prefix="/api/media-templates",
@@ -56,7 +58,9 @@ async def create_template(
         current_user,
     )
     if not template:
-        raise HTTPException(status_code=404, detail="Source MediaItem not found.")
+        raise HTTPException(
+            status_code=404, detail="Source MediaItem not found."
+        )
     return template
 
 

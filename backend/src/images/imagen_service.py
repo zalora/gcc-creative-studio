@@ -124,9 +124,7 @@ def _process_vto_in_background(
                     try:
                         start_time = time.monotonic()
                         client = GenAIModelSetup.init()
-                        gcs_output_directory = (
-                            f"gs://{cfg.IMAGE_BUCKET}/{cfg.IMAGEN_RECONTEXT_SUBFOLDER}"
-                        )
+                        gcs_output_directory = f"gs://{cfg.IMAGE_BUCKET}/{cfg.IMAGEN_RECONTEXT_SUBFOLDER}"
 
                         source_media_items: list[SourceMediaItemLink] = []  # type: ignore
                         source_assets: list[SourceAssetLink] = []
@@ -145,7 +143,9 @@ def _process_vto_in_background(
                                         f"Source asset {vto_input.source_asset_id} not found.",
                                     )
                                 source_assets.append(
-                                    SourceAssetLink(asset_id=asset.id, role=role),
+                                    SourceAssetLink(
+                                        asset_id=asset.id, role=role
+                                    ),
                                 )
                                 return asset.gcs_uri
 
@@ -174,7 +174,9 @@ def _process_vto_in_background(
                                         role=role,
                                     ),
                                 )
-                                return parent_item.gcs_uris[media_item_link.media_index]
+                                return parent_item.gcs_uris[
+                                    media_item_link.media_index
+                                ]
 
                             raise ValueError("Invalid VTO input provided.")
 
@@ -187,7 +189,10 @@ def _process_vto_in_background(
                         # Define the order of garment application
                         garment_inputs = [
                             (request_dto.top_image, AssetRoleEnum.VTO_TOP),
-                            (request_dto.bottom_image, AssetRoleEnum.VTO_BOTTOM),
+                            (
+                                request_dto.bottom_image,
+                                AssetRoleEnum.VTO_BOTTOM,
+                            ),
                             (request_dto.dress_image, AssetRoleEnum.VTO_DRESS),
                             (request_dto.shoe_image, AssetRoleEnum.VTO_SHOE),
                         ]
@@ -200,7 +205,9 @@ def _process_vto_in_background(
                         final_response = None
 
                         # --- Loop through each garment and apply it sequentially ---
-                        for i, (garment_input, role) in enumerate(active_garments):
+                        for i, (garment_input, role) in enumerate(
+                            active_garments
+                        ):
                             if garment_input:
                                 garment_gcs_uri = await get_gcs_uri_from_input(
                                     garment_input,
@@ -210,7 +217,9 @@ def _process_vto_in_background(
                                     gcs_uri=current_person_gcs_uri,
                                 )
                                 product_image_part = types.ProductImage(
-                                    product_image=types.Image(gcs_uri=garment_gcs_uri),
+                                    product_image=types.Image(
+                                        gcs_uri=garment_gcs_uri
+                                    ),
                                 )
 
                                 worker_logger.info(
@@ -237,19 +246,25 @@ def _process_vto_in_background(
                                     response.generated_images
                                     and response.generated_images[0].image
                                 ):
-                                    current_person_gcs_uri = response.generated_images[
-                                        0
-                                    ].image.gcs_uri
+                                    current_person_gcs_uri = (
+                                        response.generated_images[
+                                            0
+                                        ].image.gcs_uri
+                                    )
 
                         if not final_response:
                             raise ValueError(
                                 "VTO generation failed to produce a final result.",
                             )
 
-                        all_generated_images = final_response.generated_images or []
+                        all_generated_images = (
+                            final_response.generated_images or []
+                        )
 
                         if not all_generated_images:
-                            raise ValueError("No images generated from VTO process.")
+                            raise ValueError(
+                                "No images generated from VTO process."
+                            )
 
                         # Process results
                         valid_generated_images = [
@@ -307,7 +322,10 @@ def _process_vto_in_background(
                                 else None
                             ),
                             "source_media_items": (
-                                [item.model_dump() for item in source_media_items]
+                                [
+                                    item.model_dump()
+                                    for item in source_media_items
+                                ]
                                 if source_media_items
                                 else None
                             ),
@@ -339,7 +357,9 @@ def _process_vto_in_background(
                             "status": JobStatusEnum.FAILED,
                             "error_message": str(e),
                         }
-                        await media_repo.update(media_item_id, error_update_data)
+                        await media_repo.update(
+                            media_item_id, error_update_data
+                        )
 
         loop.run_until_complete(_async_worker())
         loop.close()
@@ -423,14 +443,18 @@ def gemini_generate_image(
                     and candidate.grounding_metadata.grounding_chunks
                 ):
                     # Capture grounding metadata if present
-                    grounding_metadata = candidate.grounding_metadata.model_dump()
+                    grounding_metadata = (
+                        candidate.grounding_metadata.model_dump()
+                    )
 
                 if candidate.content and candidate.content.parts:
                     for part in candidate.content.parts:
                         if part.inline_data:
                             # The API returns image data as a base64 encoded string
                             image_data_base64 = part.inline_data.data or ""
-                            content_type = part.inline_data.mime_type or "image/png"
+                            content_type = (
+                                part.inline_data.mime_type or "image/png"
+                            )
 
                             # Upload using our GCS service
                             image_url = gcs_service.store_to_gcs(
@@ -533,9 +557,11 @@ def _process_image_in_background(
                     gcs_output_directory = f"gs://{cfg.GENMEDIA_BUCKET}"
 
                     original_prompt = request_dto.prompt
-                    rewritten_prompt = await gemini_service.enhance_prompt_from_dto(
-                        dto=request_dto,
-                        target_type=PromptTargetEnum.IMAGE,
+                    rewritten_prompt = (
+                        await gemini_service.enhance_prompt_from_dto(
+                            dto=request_dto,
+                            target_type=PromptTargetEnum.IMAGE,
+                        )
                     )
                     request_dto.prompt = rewritten_prompt
 
@@ -545,7 +571,9 @@ def _process_image_in_background(
 
                     if request_dto.source_asset_ids:
                         for asset_id in request_dto.source_asset_ids:
-                            source_asset = await source_asset_repo.get_by_id(asset_id)
+                            source_asset = await source_asset_repo.get_by_id(
+                                asset_id
+                            )
                             if source_asset:
                                 source_assets.append(
                                     SourceAssetLink(
@@ -576,7 +604,9 @@ def _process_image_in_background(
                                 <= gen_input.media_index
                                 < len(parent_item.gcs_uris)
                             ):
-                                gcs_uri = parent_item.gcs_uris[gen_input.media_index]
+                                gcs_uri = parent_item.gcs_uris[
+                                    gen_input.media_index
+                                ]
                                 reference_images_for_api.append(
                                     types.Image(
                                         gcs_uri=gcs_uri,
@@ -593,7 +623,9 @@ def _process_image_in_background(
                     try:
                         # --- PATH 1: TEXT-TO-IMAGE GENERATION ---
                         if not reference_images_for_api:
-                            if request_dto.generation_model.is_gemini_image_model:
+                            if (
+                                request_dto.generation_model.is_gemini_image_model
+                            ):
                                 # --- GEMINI FLASH TEXT-TO-IMAGE ---
                                 # Run async tasks in the worker's event loop
                                 tasks = [
@@ -610,16 +642,22 @@ def _process_image_in_background(
                                     )
                                     for _ in range(request_dto.number_of_media)
                                 ]
-                                gemini_images_response = await asyncio.gather(*tasks)
+                                gemini_images_response = await asyncio.gather(
+                                    *tasks
+                                )
                                 all_generated_images = [
-                                    img for img, _ in gemini_images_response if img
+                                    img
+                                    for img, _ in gemini_images_response
+                                    if img
                                 ]
                                 # Store grounding metadata from the first image (assuming it applies to all in the batch for now)
                                 if (
                                     gemini_images_response
                                     and gemini_images_response[0][1]
                                 ):
-                                    grounding_metadata = gemini_images_response[0][1]
+                                    grounding_metadata = gemini_images_response[
+                                        0
+                                    ][1]
                             else:
                                 # --- OTHER IMAGEN MODELS (TEXT-TO-IMAGE): Single Batch API Call ---
                                 for attempt in range(3):
@@ -640,11 +678,14 @@ def _process_image_in_background(
                                         break
                                     except Exception as e:
                                         if "429" in str(e) and attempt < 2:
-                                            time.sleep(2**attempt + random.random())
+                                            time.sleep(
+                                                2**attempt + random.random()
+                                            )
                                             continue
                                         raise e
                                 all_generated_images = (
-                                    images_imagen_response.generated_images or []
+                                    images_imagen_response.generated_images
+                                    or []
                                 )
                         # --- PATH 2: IMAGE EDITING (IMAGE-TO-IMAGE) ---
                         elif request_dto.generation_model.is_gemini_image_model:
@@ -664,13 +705,20 @@ def _process_image_in_background(
                                 )
                                 for _ in range(request_dto.number_of_media)
                             ]
-                            gemini_images_response = await asyncio.gather(*tasks)
+                            gemini_images_response = await asyncio.gather(
+                                *tasks
+                            )
                             all_generated_images = [
                                 img for img, _ in gemini_images_response if img
                             ]
                             # Store grounding metadata from the first image
-                            if gemini_images_response and gemini_images_response[0][1]:
-                                grounding_metadata = gemini_images_response[0][1]
+                            if (
+                                gemini_images_response
+                                and gemini_images_response[0][1]
+                            ):
+                                grounding_metadata = gemini_images_response[0][
+                                    1
+                                ]
                         else:
                             # --- IMAGEN MODELS (IMAGE-TO-IMAGE) ---
                             # The DTO validation ensures we only have one source image here.
@@ -815,10 +863,15 @@ def _process_image_in_background(
                         )
 
                     except Exception as e:
-                        worker_logger.error(f"Image generation API call failed: {e}")
+                        worker_logger.error(
+                            f"Image generation API call failed: {e}"
+                        )
                         await media_repo.update(
                             media_item_id,
-                            {"status": JobStatusEnum.FAILED, "error_message": str(e)},
+                            {
+                                "status": JobStatusEnum.FAILED,
+                                "error_message": str(e),
+                            },
                         )
 
         loop.run_until_complete(_async_worker())
@@ -914,7 +967,9 @@ def _process_upload_upscale_in_background(
                     # Instantiate Services
                     iam_signer = IamSignerCredentials()
                     gcs_service = GcsService()
-                    gemini_service = GeminiService(brand_guideline_repo=brand_repo)
+                    gemini_service = GeminiService(
+                        brand_guideline_repo=brand_repo
+                    )
 
                     # Instantiate ImagenService
                     imagen_service = ImagenService(
@@ -990,7 +1045,9 @@ def _process_upload_upscale_in_background(
 
                             # Use the first original URI if available, else the first generation URI
                             if existing_media.original_gcs_uris:
-                                final_original_uri = existing_media.original_gcs_uris[0]
+                                final_original_uri = (
+                                    existing_media.original_gcs_uris[0]
+                                )
                             elif existing_media.gcs_uris:
                                 final_original_uri = existing_media.gcs_uris[0]
                             else:
@@ -1000,7 +1057,9 @@ def _process_upload_upscale_in_background(
 
                         # --- Perform Upscaling ---
                         if not final_original_uri and not final_upscaled_uri:
-                            raise ValueError("No valid source URI found for upscaling.")
+                            raise ValueError(
+                                "No valid source URI found for upscaling."
+                            )
 
                         if not final_upscaled_uri:
                             # Only upscale if we haven't already done it via upload_asset
@@ -1011,12 +1070,15 @@ def _process_upload_upscale_in_background(
                                     upscale_factor=upscale_factor,
                                     mime_type=MimeTypeEnum.IMAGE_PNG,
                                     generation_model=GenerationModelEnum.IMAGEN_4_UPSCALE_PREVIEW,
-                                    enhance_input_image=enhance_input_image or False,
+                                    enhance_input_image=enhance_input_image
+                                    or False,
                                     image_preservation_factor=image_preservation_factor,
                                 )
 
-                                upscaled_result = await imagen_service.upscale_image(
-                                    upscale_dto,
+                                upscaled_result = (
+                                    await imagen_service.upscale_image(
+                                        upscale_dto,
+                                    )
                                 )
 
                                 if (
@@ -1024,9 +1086,13 @@ def _process_upload_upscale_in_background(
                                     and upscaled_result.image
                                     and upscaled_result.image.gcs_uri
                                 ):
-                                    final_upscaled_uri = upscaled_result.image.gcs_uri
+                                    final_upscaled_uri = (
+                                        upscaled_result.image.gcs_uri
+                                    )
                                 else:
-                                    raise ValueError("Upscaling returned no URI")
+                                    raise ValueError(
+                                        "Upscaling returned no URI"
+                                    )
                             else:
                                 # No upscale requested, use original as the result
                                 final_upscaled_uri = final_original_uri
@@ -1061,14 +1127,18 @@ def _process_upload_upscale_in_background(
                             "status": JobStatusEnum.COMPLETED,
                             "gcs_uris": [final_upscaled_uri],
                             "original_gcs_uris": (
-                                [final_original_uri] if final_original_uri else []
+                                [final_original_uri]
+                                if final_original_uri
+                                else []
                             ),
                             "thumbnail_uris": thumbnail_uris,
                             "generation_time": generation_time,
                             "num_media": 1,
                             "mime_type": MimeTypeEnum.IMAGE_PNG,
                             "source_assets": (
-                                source_assets_list if source_assets_list else None
+                                source_assets_list
+                                if source_assets_list
+                                else None
                             ),
                         }
                         await media_repo.update(media_item_id, update_data)
@@ -1083,7 +1153,10 @@ def _process_upload_upscale_in_background(
                         )
                         await media_repo.update(
                             media_item_id,
-                            {"status": JobStatusEnum.FAILED, "error_message": str(e)},
+                            {
+                                "status": JobStatusEnum.FAILED,
+                                "error_message": str(e),
+                            },
                         )
 
         loop.run_until_complete(_async_worker())
@@ -1136,25 +1209,35 @@ class ImagenService:
         if not file_bytes:
             if source_asset_id:
                 try:
-                    asset = await self.source_asset_repo.get_by_id(int(source_asset_id))
+                    asset = await self.source_asset_repo.get_by_id(
+                        int(source_asset_id)
+                    )
                     if not asset:
-                        raise ValueError(f"Source asset {source_asset_id} not found")
+                        raise ValueError(
+                            f"Source asset {source_asset_id} not found"
+                        )
                     target_gcs_uri = asset.gcs_uri
                 except ValueError:
-                    raise ValueError(f"Invalid source asset id: {source_asset_id}")
+                    raise ValueError(
+                        f"Invalid source asset id: {source_asset_id}"
+                    )
 
             elif media_item_id_existing:
                 # It's an existing MediaItem
                 media = await self.media_repo.get_by_id(media_item_id_existing)
                 if not media:
-                    raise ValueError(f"Media item {media_item_id_existing} not found")
+                    raise ValueError(
+                        f"Media item {media_item_id_existing} not found"
+                    )
                 # We don't strictly need the URI here as the worker will fetch it,
                 # but good to validate existence.
                 target_gcs_uri = media.gcs_uris[0] if media.gcs_uris else None
 
         if target_gcs_uri and not file_bytes:
             # Download bytes for validation to ensure error feedback
-            image_bytes = self.gcs_service.download_bytes_from_gcs(target_gcs_uri)
+            image_bytes = self.gcs_service.download_bytes_from_gcs(
+                target_gcs_uri
+            )
             if image_bytes:
                 try:
                     pil_image = PILImage.open(io.BytesIO(image_bytes))
@@ -1169,7 +1252,9 @@ class ImagenService:
                     elif upscale_factor == "x3":
                         factor_int = 3
 
-                    projected_pixels = current_pixels * (factor_int * factor_int)
+                    projected_pixels = current_pixels * (
+                        factor_int * factor_int
+                    )
 
                     if projected_pixels > MAX_OUTPUT_PIXELS:
                         raise HTTPException(
@@ -1179,7 +1264,9 @@ class ImagenService:
                 except HTTPException:
                     raise
                 except Exception as e:
-                    logger.warning(f"Failed to validate existing image resolution: {e}")
+                    logger.warning(
+                        f"Failed to validate existing image resolution: {e}"
+                    )
 
         # 1. Create Placeholder
         placeholder_item = MediaItemModel(
@@ -1373,7 +1460,9 @@ class ImagenService:
 
         # 2. Create tasks to generate all presigned URLs in parallel
         presigned_url_tasks = [
-            asyncio.to_thread(self.iam_signer_credentials.generate_presigned_url, uri)
+            asyncio.to_thread(
+                self.iam_signer_credentials.generate_presigned_url, uri
+            )
             for uri in media_item.gcs_uris
         ]
 
@@ -1411,10 +1500,16 @@ class ImagenService:
 
             # --- Step 2: Process the response and save to GCS ---
             first_image = (
-                response.generated_images[0] if response.generated_images else None
+                response.generated_images[0]
+                if response.generated_images
+                else None
             )
 
-            if first_image and first_image.image and first_image.image.image_bytes:
+            if (
+                first_image
+                and first_image.image
+                and first_image.image.image_bytes
+            ):
                 upscaled_bytes = first_image.image.image_bytes
                 # Create a unique filename for the upscaled image.
                 original_filename = os.path.basename(

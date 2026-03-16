@@ -46,7 +46,9 @@ def upgrade() -> None:
         sa.Column("brand", sa.String(), nullable=True),
         sa.Column("tags", postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column("gcs_uris", postgresql.ARRAY(sa.String()), nullable=False),
-        sa.Column("thumbnail_uris", postgresql.ARRAY(sa.String()), nullable=False),
+        sa.Column(
+            "thumbnail_uris", postgresql.ARRAY(sa.String()), nullable=False
+        ),
         sa.Column(
             "generation_parameters",
             postgresql.JSONB(astext_type=sa.Text()),
@@ -151,7 +153,9 @@ def upgrade() -> None:
         ),
         sa.Column("gcs_uris", postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column("duration_seconds", sa.Float(), nullable=True),
-        sa.Column("thumbnail_uris", postgresql.ARRAY(sa.String()), nullable=False),
+        sa.Column(
+            "thumbnail_uris", postgresql.ARRAY(sa.String()), nullable=False
+        ),
         sa.Column("comment", sa.String(), nullable=True),
         sa.Column("seed", sa.Integer(), nullable=True),
         sa.Column("critique", sa.String(), nullable=True),
@@ -169,7 +173,9 @@ def upgrade() -> None:
         ),
         sa.Column("voice_name", sa.String(), nullable=True),
         sa.Column("language_code", sa.String(), nullable=True),
-        sa.Column("raw_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column(
+            "raw_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+        ),
         sa.Column("created_from_template_id", sa.Integer(), nullable=True),
         sa.Column(
             "created_at",
@@ -254,8 +260,12 @@ def upgrade() -> None:
         sa.Column("status", sa.String(), nullable=False),
         sa.Column("error_message", sa.String(), nullable=True),
         sa.Column("workspace_id", sa.Integer(), nullable=True),
-        sa.Column("source_pdf_gcs_uris", postgresql.ARRAY(sa.String()), nullable=False),
-        sa.Column("color_palette", postgresql.ARRAY(sa.String()), nullable=False),
+        sa.Column(
+            "source_pdf_gcs_uris", postgresql.ARRAY(sa.String()), nullable=False
+        ),
+        sa.Column(
+            "color_palette", postgresql.ARRAY(sa.String()), nullable=False
+        ),
         sa.Column("logo_asset_id", sa.Integer(), nullable=True),
         sa.Column("guideline_text", sa.String(), nullable=True),
         sa.Column("tone_of_voice_summary", sa.String(), nullable=True),

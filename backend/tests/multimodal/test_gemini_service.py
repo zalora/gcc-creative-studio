@@ -26,7 +26,9 @@ from src.multimodal.gemini_service import (
 
 @pytest.fixture
 def gemini_service():
-    with patch("src.multimodal.gemini_service.GeminiModelSetup.init") as mock_init:
+    with patch(
+        "src.multimodal.gemini_service.GeminiModelSetup.init"
+    ) as mock_init:
         mock_client = MagicMock()
         mock_init.return_value = mock_client
         service = GeminiService()
@@ -69,7 +71,9 @@ def test_generate_random_or_rewrite_prompt(gemini_service):
     with patch.object(gemini_service, "generate_structured_prompt") as mock_gen:
         mock_gen.return_value = "random prompt"
 
-        res = gemini_service.generate_random_or_rewrite_prompt(PromptTargetEnum.IMAGE)
+        res = gemini_service.generate_random_or_rewrite_prompt(
+            PromptTargetEnum.IMAGE
+        )
 
         assert res == "random prompt"
         mock_gen.assert_called_once()
@@ -88,7 +92,9 @@ async def test_enhance_prompt_from_dto_success(gemini_service):
         mock_gen.return_value = '{"prompt": "enhanced"}'
 
         # enhance_prompt_from_dto IS async!
-        res = await gemini_service.enhance_prompt_from_dto(dto, PromptTargetEnum.IMAGE)
+        res = await gemini_service.enhance_prompt_from_dto(
+            dto, PromptTargetEnum.IMAGE
+        )
 
         assert res == '{"prompt": "enhanced"}'
 
@@ -158,20 +164,26 @@ async def test_enhance_prompt_from_dto_with_brand_guidelines(gemini_service):
     with patch.object(gemini_service, "generate_structured_prompt") as mock_gen:
         mock_gen.return_value = '{"prompt": "enhanced"}'
 
-        res = await gemini_service.enhance_prompt_from_dto(dto, PromptTargetEnum.IMAGE)
+        res = await gemini_service.enhance_prompt_from_dto(
+            dto, PromptTargetEnum.IMAGE
+        )
         assert res == '{"prompt": "enhanced"}'
         gemini_service.brand_guideline_repo.query.assert_called_once()
 
 
 def test_generate_text_failure(gemini_service):
-    gemini_service.client.models.generate_content.side_effect = Exception("API Error")
+    gemini_service.client.models.generate_content.side_effect = Exception(
+        "API Error"
+    )
     with pytest.raises(Exception):
         gemini_service.generate_text("Hello")
 
 
 def test_extract_brand_info_from_pdf_failure(gemini_service):
     # Setting side_effect triggers the Exception catch block
-    gemini_service.client.models.generate_content.side_effect = Exception("API Error")
+    gemini_service.client.models.generate_content.side_effect = Exception(
+        "API Error"
+    )
     res = gemini_service.extract_brand_info_from_pdf("gs://bucket/file.pdf")
     assert res == {}
 
