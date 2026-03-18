@@ -39,3 +39,4 @@ class GallerySearchDto(BaseSearchDto):
     start_date: datetime.datetime | None = None
     end_date: datetime.datetime | None = None
     item_type: str | None = None  # 'media_item' or 'source_asset'
+    query: str | None = None

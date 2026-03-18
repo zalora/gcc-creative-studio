@@ -23,6 +23,12 @@
   <!-- Advanced Filters -->
   <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-center mb-6">
     <mat-form-field appearance="outline" class="!mb-0">
+      <mat-label>Search</mat-label>
+      <input matInput [(ngModel)]="filterQuery" (input)="applyFilters()" placeholder="Search terms..." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="!mb-0">
       <mat-label>User Email</mat-label>
       <input matInput [(ngModel)]="filterEmail" (input)="applyFilters()" placeholder="User Email" />
       <mat-icon matSuffix>email</mat-icon>
@@ -94,11 +100,19 @@
       <ng-container matColumnDef="thumbnail">
         <th mat-header-cell *matHeaderCellDef class="!pl-4">Preview</th>
         <td mat-cell *matCellDef="let item" class="!py-2">
-            <img *ngIf="item.presignedThumbnailUrls?.length" [src]="item.presignedThumbnailUrls[0]" class="w-12 h-12 object-cover rounded" />
-            <img *ngIf="!item.presignedThumbnailUrls?.length && item.presignedUrls?.length" [src]="item.presignedUrls[0]" class="w-12 h-12 object-cover rounded" />
-            <div *ngIf="!item.presignedThumbnailUrls?.length && !item.presignedUrls?.length" class="w-12 h-12 bg-gray-800 flex items-center justify-center rounded">
-                <mat-icon>{{ item.itemType === 'source_asset' ? 'description' : 'image' }}</mat-icon>
+            <!-- Audio Icon Display -->
+            <div *ngIf="item.metadata?.mimeType?.startsWith('audio') || item.metadata?.assetType === 'audio'" class="w-12 h-12 bg-blue-900/30 flex items-center justify-center rounded border border-blue-500/20">
+                <mat-icon class="text-blue-400">audiotrack</mat-icon>
             </div>
+
+            <!-- Standard Image Display (Hidden if Audio) -->
+            <ng-container *ngIf="!(item.metadata?.mimeType?.startsWith('audio') || item.metadata?.assetType === 'audio')">
+                <img *ngIf="item.presignedThumbnailUrls?.length" [src]="item.presignedThumbnailUrls[0]" class="w-12 h-12 object-cover rounded" />
+                <img *ngIf="!item.presignedThumbnailUrls?.length && item.presignedUrls?.length" [src]="item.presignedUrls[0]" class="w-12 h-12 object-cover rounded" />
+                <div *ngIf="!item.presignedThumbnailUrls?.length && !item.presignedUrls?.length" class="w-12 h-12 bg-gray-800 flex items-center justify-center rounded">
+                    <mat-icon>{{ item.itemType === 'source_asset' ? 'description' : 'image' }}</mat-icon>
+                </div>
+            </ng-container>
         </td>
       </ng-container>
 

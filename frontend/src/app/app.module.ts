@@ -20,6 +20,8 @@ import {getAuth, provideAuth} from '@angular/fire/auth';
 import {getFirestore, provideFirestore} from '@angular/fire/firestore';
 import {MatButtonModule} from '@angular/material/button';
 import {MatChipsModule} from '@angular/material/chips';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatNativeDateModule} from '@angular/material/core';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIconModule} from '@angular/material/icon';
@@ -146,6 +148,8 @@ import {UpscaleComponent} from './upscale/upscale.component';
     MatDividerModule,
     MatButtonModule,
     MatChipsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     MatRadioModule,
     MatIconModule,
     MatStepperModule,

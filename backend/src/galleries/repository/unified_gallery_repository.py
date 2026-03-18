@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 
 
 from fastapi import Depends
@@ -104,7 +105,20 @@ class UnifiedGalleryRepository(
             query = query.where(self.model.created_at >= search_dto.start_date)
 
         if hasattr(search_dto, "end_date") and search_dto.end_date:
-            query = query.where(self.model.created_at <= search_dto.end_date)
+            # Add one day to include the full end date
+            query = query.where(
+                self.model.created_at
+                < search_dto.end_date + datetime.timedelta(days=1)
+            )
+
+        # 5. Full-Text Word Search
+        if hasattr(search_dto, "query") and search_dto.query:
+            search_pattern = f"%{search_dto.query}%"
+            query = query.where(
+                self.model.metadata_["prompt"].astext.ilike(search_pattern)
+                | self.model.metadata_["file_name"].astext.ilike(search_pattern)
+                | self.model.metadata_["model"].astext.ilike(search_pattern)
+            )
 
         # 2. Get total count
         count_query = select(func.count()).select_from(query.subquery())

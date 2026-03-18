@@ -54,6 +54,7 @@ export class MediaGalleryManagementComponent implements OnInit {
   errorLoading: string | null = null;
 
   // Filters
+  filterQuery = '';
   filterEmail = '';
   filterStatus = '';
   filterType = '';
@@ -105,6 +106,9 @@ export class MediaGalleryManagementComponent implements OnInit {
       includeDeleted: this.includeDeleted,
     };
 
+    if (this.filterQuery.trim()) {
+      filters.query = this.filterQuery.trim();
+    }
     if (this.filterEmail.trim()) {
       filters.userEmail = this.filterEmail.trim();
     }

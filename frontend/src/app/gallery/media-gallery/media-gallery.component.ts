@@ -91,6 +91,9 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   public userEmailFilter = '';
   public mediaTypeFilter = '';
   public generationModelFilter = '';
+  public queryFilter = '';
+  public startDateFilter: Date | null = null;
+  public endDateFilter: Date | null = null;
   public generationModels = MODEL_CONFIGS.map(config => ({
     value: config.value,
     viewValue: config.viewValue.replace('\n', ''), // Remove newlines for dropdown
@@ -495,9 +498,22 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedItems.clear();
 
     const filters: GallerySearchDto = {limit: 40};
-    if (this.userEmailFilter) {
-      filters['userEmail'] = this.userEmailFilter;
+    if (this.queryFilter.trim()) {
+      const term = this.queryFilter.trim();
+      if (term.includes('@')) {
+        filters['userEmail'] = term;
+      } else {
+        filters['query'] = term;
+      }
     }
+    if (this.startDateFilter) {
+      filters['startDate'] = this.startDateFilter.toISOString();
+    }
+    if (this.endDateFilter) {
+      filters['endDate'] = this.endDateFilter.toISOString();
+    }
+
+    // userEmailFilter is no longer used directly from its own input field
     const mimeType = this.filterByType
       ? this.filterByType
       : this.isSelectionMode
@@ -513,5 +529,12 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
       filters['status'] = this.statusFilter;
     }
     this.galleryService.setFilters(filters);
+  }
+
+  clearDates(event: Event): void {
+    event.stopPropagation();
+    this.startDateFilter = null;
+    this.endDateFilter = null;
+    this.searchTerm();
   }
 }

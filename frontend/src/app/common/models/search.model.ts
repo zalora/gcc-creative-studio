@@ -119,4 +119,5 @@ export interface GallerySearchDto {
   startDate?: string;
   endDate?: string;
   itemType?: string;
+  query?: string;
 }
