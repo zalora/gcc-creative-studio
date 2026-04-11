@@ -1,0 +1,146 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, case, select
+from src.users.user_model import User
+from src.workspaces.schema.workspace_model import Workspace
+from src.common.schema.media_item_model import MediaItem
+from src.admin.dto.admin_response_dto import AdminOverviewStats, AdminMediaOverTime, AdminWorkspaceStats, AdminActiveRole, AdminGenerationHealth, AdminMonthlyActiveUsers
+from datetime import datetime
+
+
+class AdminService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    def _apply_date_filters(self, query, model, start_date: str | None, end_date: str | None):
+        if start_date:
+            query = query.where(model.created_at >= datetime.strptime(start_date, "%Y-%m-%d"))
+        if end_date:
+            query = query.where(model.created_at <= datetime.strptime(end_date, "%Y-%m-%d"))
+        return query
+
+    async def get_overview_stats(self) -> AdminOverviewStats:
+        scalar_users = (await self.db.execute(select(func.count(User.id)))).scalar_one()
+        scalar_workspaces = (await self.db.execute(select(func.count(Workspace.id)))).scalar_one()
+        
+        query_media = select(
+            func.sum(case((MediaItem.mime_type.like("image/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("images"),
+            func.sum(case((MediaItem.mime_type.like("video/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("videos"),
+            func.sum(case((MediaItem.mime_type.like("audio/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("audios"),
+        )
+        media_counts = (await self.db.execute(query_media)).first()
+
+        images = int(media_counts.images or 0) if media_counts else 0
+        videos = int(media_counts.videos or 0) if media_counts else 0
+        audios = int(media_counts.audios or 0) if media_counts else 0
+
+        return AdminOverviewStats(
+            total_users=scalar_users or 0,
+            total_workspaces=scalar_workspaces or 0,
+            images_generated=images,
+            videos_generated=videos,
+            audios_generated=audios,
+            total_media=images + videos + audios,
+        )
+
+    async def get_media_over_time(self, start_date: str | None = None, end_date: str | None = None) -> list[AdminMediaOverTime]:
+        query = select(
+            func.date(MediaItem.created_at).label("date"),
+            func.sum(func.cardinality(MediaItem.gcs_uris)).label("count"),
+            func.sum(case((MediaItem.mime_type.like("image/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("images"),
+            func.sum(case((MediaItem.mime_type.like("video/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("videos"),
+            func.sum(case((MediaItem.mime_type.like("audio/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("audios"),
+        )
+        query = self._apply_date_filters(query, MediaItem, start_date, end_date)
+        query = query.group_by(func.date(MediaItem.created_at)).order_by(func.date(MediaItem.created_at))
+        media_over_time = (await self.db.execute(query)).all()
+
+        return [
+            AdminMediaOverTime(
+                date=str(row.date),
+                total_generated=row.count,
+                images=int(row.images or 0),
+                videos=int(row.videos or 0),
+                audios=int(row.audios or 0)
+            )
+            for row in media_over_time
+        ]
+
+    async def get_workspace_stats(self) -> list[AdminWorkspaceStats]:
+        workspace_stats = (
+            await self.db.execute(
+                select(
+                    MediaItem.workspace_id,
+                    Workspace.name.label("workspace_name"),
+                    func.sum(func.cardinality(MediaItem.gcs_uris)).label("count"),
+                    func.sum(case((MediaItem.mime_type.like("image/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("images"),
+                    func.sum(case((MediaItem.mime_type.like("video/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("videos"),
+                    func.sum(case((MediaItem.mime_type.like("audio/%"), func.cardinality(MediaItem.gcs_uris)), else_=0)).label("audios"),
+                )
+                .join(Workspace, Workspace.id == MediaItem.workspace_id)
+                .group_by(MediaItem.workspace_id, Workspace.name)
+                .order_by(func.sum(func.cardinality(MediaItem.gcs_uris)).desc())
+                .limit(10)
+            )
+        ).all()
+
+        return [
+            AdminWorkspaceStats(
+                workspace_id=row.workspace_id,
+                workspace_name=row.workspace_name,
+                total_media=row.count,
+                images=int(row.images or 0),
+                videos=int(row.videos or 0),
+                audios=int(row.audios or 0),
+            )
+            for row in workspace_stats
+        ]
+
+    async def get_active_roles(self) -> list[AdminActiveRole]:
+        roles_stats = (
+            await self.db.execute(
+                select(
+                    func.unnest(User.roles).label("role"),
+                    func.count(User.id).label("count"),
+                ).group_by("role")
+            )
+        ).all()
+
+        return [AdminActiveRole(role=row.role, count=row.count) for row in roles_stats]
+
+    async def get_generation_health(self, start_date: str | None = None, end_date: str | None = None) -> list[AdminGenerationHealth]:
+        query = select(
+            MediaItem.status.label("status"),
+            func.count(MediaItem.id).label("count")
+        )
+        query = self._apply_date_filters(query, MediaItem, start_date, end_date)
+        query = query.group_by(MediaItem.status)
+        health_stats = (await self.db.execute(query)).all()
+
+        return [AdminGenerationHealth(status=row.status, count=row.count) for row in health_stats]
+
+    async def get_active_users_monthly(self) -> list[AdminMonthlyActiveUsers]:
+        query = select(
+            func.to_char(MediaItem.created_at, "YYYY-MM").label("month"),
+            func.count(func.distinct(MediaItem.user_email)).label("count"),
+        ).group_by("month").order_by("month")
+        results = (await self.db.execute(query)).all()
+
+        return [
+            AdminMonthlyActiveUsers(month=row.month, count=row.count)
+            for row in results
+        ]
+
