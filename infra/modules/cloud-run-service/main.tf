@@ -165,6 +165,17 @@ resource "google_cloud_run_v2_service_iam_member" "run_developer_binding" {
   member   = "serviceAccount:${google_service_account.trigger_sa.email}"
 }
 
+# Required for Firebase Hosting to proxy /api/** requests to Cloud Run.
+# Firebase Hosting does not add a Google identity token when forwarding requests,
+# so the service must allow unauthenticated invocations at the infrastructure level.
+# The application handles its own authentication via OIDC token verification.
+resource "google_cloud_run_v2_service_iam_member" "allow_unauthenticated" {
+  name     = google_cloud_run_v2_service.this.name
+  location = google_cloud_run_v2_service.this.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
 resource "google_service_account_iam_member" "run_sa_user_binding" {
   service_account_id = google_service_account.run_sa.name
   role               = "roles/iam.serviceAccountUser"
