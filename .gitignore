@@ -20,3 +20,6 @@ local/
 genmedia-agent-demos
 .gemini
 .agents
+
+# Local security notes/reports - never push to this public fork.
+/security-notes/

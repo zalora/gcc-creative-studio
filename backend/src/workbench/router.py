@@ -17,20 +17,19 @@
 import logging
 import shutil
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
+from src.auth.auth_guard import get_current_user
 from src.workbench.schemas import TimelineRequest
 from src.workbench.service import WorkbenchService
 
 router = APIRouter(
     prefix="/api/workbench",
     tags=["workbench"],
+    dependencies=[Depends(get_current_user)],
 )
-
-# Temporarily disabled pending a fix; re-enable by removing this flag.
-RENDER_ENABLED = False
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +47,6 @@ async def render_timeline(
     request: TimelineRequest,
     service: WorkbenchService = Depends(),
 ):
-    if not RENDER_ENABLED:
-        raise HTTPException(
-            status_code=503,
-            detail="Video rendering is temporarily unavailable.",
-        )
-
     video_path, temp_dir = await service.render_timeline(request)
 
     return FileResponse(

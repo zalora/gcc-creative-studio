@@ -15,13 +15,16 @@
 
 
 import asyncio
+import ipaddress
 import logging
 import os
 import shutil
+import socket
 import subprocess
 import tempfile
+import urllib.error
 import urllib.request
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from fastapi import Depends
 from google.cloud import storage
@@ -30,6 +33,74 @@ from src.common.storage_service import GcsService
 from src.workbench.schemas import TimelineRequest
 
 logger = logging.getLogger(__name__)
+
+_ALLOWED_URL_SCHEMES = {"http", "https"}
+_MAX_ASSET_REDIRECTS = 5
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Disables automatic redirect following so each hop can be re-validated."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _is_blocked_ip(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    return (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_multicast
+        or ip.is_reserved
+        or ip.is_unspecified
+    )
+
+
+def _assert_safe_asset_url(url: str) -> None:
+    """Blocks fetches to internal/link-local/metadata addresses.
+
+    Must be called again on every redirect hop -- validating only the
+    initial URL lets an attacker bounce the fetch to an internal address
+    via an HTTP redirect.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in _ALLOWED_URL_SCHEMES:
+        raise ValueError(f"Unsupported URL scheme: {parsed.scheme}")
+    if not parsed.hostname:
+        raise ValueError(f"Invalid asset URL: {url}")
+
+    try:
+        addr_infos = socket.getaddrinfo(parsed.hostname, None)
+    except socket.gaierror as e:
+        raise ValueError(f"Could not resolve asset host: {parsed.hostname}") from e
+
+    for addr_info in addr_infos:
+        ip = ipaddress.ip_address(addr_info[4][0])
+        if _is_blocked_ip(ip):
+            raise ValueError(
+                f"Asset URL resolves to a disallowed address: {parsed.hostname}",
+            )
+
+
+def _fetch_asset(url: str, dest: str) -> None:
+    """Fetches an http(s) URL to `dest`, re-validating the target on every redirect."""
+    opener = urllib.request.build_opener(_NoRedirectHandler)
+    for _ in range(_MAX_ASSET_REDIRECTS + 1):
+        _assert_safe_asset_url(url)
+        try:
+            with opener.open(url, timeout=30) as response:
+                with open(dest, "wb") as out_file:
+                    shutil.copyfileobj(response, out_file)
+            return
+        except urllib.error.HTTPError as e:
+            if e.code in (301, 302, 303, 307, 308):
+                location = e.headers.get("Location")
+                if not location:
+                    raise ValueError("Redirect response missing Location header")
+                url = urljoin(url, location)
+                continue
+            raise
+    raise ValueError("Too many redirects while fetching asset")
 
 
 class WorkbenchService:
@@ -284,7 +355,7 @@ class WorkbenchService:
         if url.startswith("gs://"):
             await asyncio.to_thread(self._download_gcs_blob, url, dest)
         elif url.startswith("http"):
-            await asyncio.to_thread(urllib.request.urlretrieve, url, dest)
+            await asyncio.to_thread(_fetch_asset, url, dest)
         elif url.startswith("blob:"):
             raise ValueError(
                 "Cannot render local blob URLs. Please upload assets to Cloud first.",
